@@ -1,5 +1,5 @@
 {
-  "name": "quiqqer\/order-guest",
+  "name": "quiqqer\/order-guestorder",
   "type": "quiqqer-module",
   "description": "QUIQQER ERP Order Guest",
   "license": [
@@ -24,7 +24,7 @@
   },
   "autoload": {
     "psr-4": {
-      "QUI\\ERP\\OrderGuest\\": "src\/QUI\/ERP\/OrderGuest"
+      "QUI\\ERP\\Order\\Guest\\": "src\/QUI\/ERP\/Order\/Guest"
     }
   }
 }
