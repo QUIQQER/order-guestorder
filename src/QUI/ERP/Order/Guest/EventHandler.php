@@ -4,7 +4,7 @@ namespace QUI\ERP\Order\Guest;
 
 use QUI;
 use QUI\ERP\Order\AbstractOrder;
-use QUI\ERP\Order\Guest\Controls\OrderGuestInit;
+use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
 use QUI\ERP\Order\Settings;
 use QUI\Smarty\Collector;
 
@@ -12,6 +12,18 @@ use function date;
 
 class EventHandler
 {
+    const FLAG = 'guest-order-is-guest';
+
+    public static function setGuestOrderFlag()
+    {
+        QUI::getSession()->set(self::FLAG, 1);
+    }
+
+    public static function removeGuestOrderFlag()
+    {
+        QUI::getSession()->remove(self::FLAG, 1);
+    }
+
     /**
      * @return GuestOrderUser|null
      *
@@ -23,7 +35,10 @@ class EventHandler
             return null;
         }
 
-        //return null;
+        if (!QUI::getSession()->get(self::FLAG)) {
+            return null;
+        }
+
         return new GuestOrderUser();
     }
 
@@ -173,7 +188,7 @@ class EventHandler
             return null;
         }
 
-        $GuestInit = new OrderGuestInit();
+        $GuestInit = new GuestOrderButton();
         $Collector->append($GuestInit->create());
     }
 
