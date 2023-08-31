@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <global>
+        <table name="orders_process">
+            <field type="VARCHAR(250) NULL DEFAULT NULL">guestOrder</field>
+        </table>
+    </global>
+</database>

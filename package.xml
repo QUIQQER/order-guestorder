@@ -1,0 +1,26 @@
+<quiqqer>
+    <package>
+
+        <title>
+            <locale group="quiqqer/order-guestorder" var="package.title"/>
+        </title>
+
+        <description>
+            <locale group="quiqqer/order-guestorder" var="package.description"/>
+        </description>
+
+        <support>
+            <email><![CDATA[support@pcsg.de]]></email>
+            <forum><![CDATA[https://community.quiqqer.com]]></forum>
+            <source><![CDATA[https://dev.quiqqer.com/quiqqer/order-guestorder]]></source>
+            <issues><![CDATA[https://dev.quiqqer.com/quiqqer/order-guestorder/issues]]></issues>
+            <wiki><![CDATA[https://dev.quiqqer.com/quiqqer/order-guestorder/wikis/home]]></wiki>
+        </support>
+
+        <copyright>
+            <name><![CDATA[PCSG - Computer & Internet Service OHG]]></name>
+            <license><![CDATA[GPL-3.0+]]></license>
+            <license><![CDATA[PCSG QEL-1.0]]></license>
+        </copyright>
+    </package>
+</quiqqer>

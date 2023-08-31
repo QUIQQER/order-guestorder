@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locales>
+    <groups name="quiqqer/order-guestorder" datatype="php,js">
+        <locale name="package.title">
+            <de><![CDATA[ecoyn - Gastbestellungen]]></de>
+            <en><![CDATA[ecoyn - guest order]]></en>
+        </locale>
+
+        <locale name="package.description">
+            <de><![CDATA[Fügt QUIQQER und ecoyn eine Gastbestellfunktion hinzu.]]></de>
+            <en><![CDATA[Adds guest ordering functionality to QUIQQER and ecoyn.]]></en>
+        </locale>
+        <locale name="order.create.account.message">
+            <de><![CDATA[
+            <span>Kundenkonto anlegen: Ja, ich möchte von den Vorteilen eines Kundenkontos profitieren.
+            Bequemes Bestellen, schnelle Auftragsverfolgung und exklusive Angebote.</span>
+            ]]></de>
+            <en><![CDATA[
+            <span>Create a customer account: Yes, I would like to benefit from the advantages of a customer account.
+            Convenient ordering, fast order tracking and exclusive offers.</span>
+            ]]></en>
+        </locale>
+    </groups>
+
+</locales>
