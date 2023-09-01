@@ -13,6 +13,16 @@ use function json_decode;
  */
 class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\User
 {
+    public function __construct()
+    {
+        parent::__construct();
+        return;
+        $firstname = $this->getAttribute('firstname');
+
+        if (empty($firstname)) {
+            $this->setAttribute('firstname', 'Gast');
+        }
+    }
 
     public function getId(): int
     {
@@ -36,6 +46,17 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         QUI::getSession()->set('guest-order-id', $orderGuestId);
 
         return $orderGuestId;
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @return string
+     * @see \QUI\Interfaces\Users\User::getUsername()
+     */
+    public function getUsername(): string
+    {
+        return QUI::getLocale()->get('quiqqer/order-guestorder', 'guest.username');
     }
 
     //region setter

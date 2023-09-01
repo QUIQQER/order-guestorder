@@ -20,6 +20,19 @@
             Convenient ordering, fast order tracking and exclusive offers.</span>
             ]]></en>
         </locale>
+
+        <locale name="guest.username">
+            <de><![CDATA[Gast]]></de>
+            <en><![CDATA[Guest]]></en>
+        </locale>
+        <locale name="mail.is.already.registered">
+            <de><![CDATA[
+            Diese E-Mail ist in unserem System schon regisriert. Bitte melde dich mit deinen Accountdaten an.
+            ]]></de>
+            <en><![CDATA[
+            This email is already registered in our system. Please log in with your account data.
+            ]]></en>
+        </locale>
     </groups>
 
 </locales>

@@ -1,0 +1,36 @@
+.guest-order-login {
+    padding: 3rem 2rem 2rem 2rem;
+    width: 33%;
+}
+
+.guest-order-login h2:first-child {
+    position: relative;
+    text-align: center;
+}
+
+.guest-order-login h2:first-child:after {
+    bottom: -10px;
+    content: '';
+    height: 2px;
+    left: calc(50% - 40px);
+    position: absolute;
+    width: 80px;
+}
+
+.guest-order-login h2:first-child:after {
+    background: #3986dd;
+}
+
+.guest-order-login .step {
+    padding-top: 2rem;
+}
+
+.quiqqer-order-ordering-nobody-guestOrder-email span {
+    display: block;
+    width: 100%;
+}
+
+.quiqqer-order-ordering-nobody-guestOrder-email input,
+.quiqqer-order-ordering-nobody-guestOrder-email button {
+    width: 100%;
+}

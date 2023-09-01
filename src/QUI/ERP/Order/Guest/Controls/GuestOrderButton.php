@@ -14,6 +14,9 @@ class GuestOrderButton extends QUI\Control
             'data-qui' => 'package/quiqqer/order-guestorder/bin/frontend/controls/GuestOrderButton'
         ]);
 
+        $this->addCSSFile(dirname(__FILE__) . '/GuestOrderButton.css');
+        $this->addCSSClass('guest-order-login');
+
         parent::__construct($attributes);
     }
 

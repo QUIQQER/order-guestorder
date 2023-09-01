@@ -1,8 +1,24 @@
 <div class="quiqqer-order-ordering-nobody-guestOrder">
     <form name="" method="POST">
         <h2>Als Gast bestellen</h2>
-        <button name="guest-order">
-            Ich möchte die Bestellung als Gast durchführen.
-        </button>
+
+        <div class="step" style="display: none">
+            <button name="guest-order">
+                Ich möchte die Bestellung als Gast durchführen.
+            </button>
+        </div>
+
+        <div class="step quiqqer-order-ordering-nobody-guestOrder-email" style="display: none">
+            <p>Um deine Bestellung aufzugeben, benötigen wir deine E-Mail-Adresse. Sobald du diese angibst,
+                kannst du ganz einfach als Gast fortfahren und deine Bestellung abschließen.</p>
+            <label>
+                <span>E-Mail</span>
+                <input type="email" name="guest-order-enter-email"/>
+            </label>
+
+            <button name="guest-order-enter-emailSubmit">
+                Weiter
+            </button>
+        </div>
     </form>
 </div>

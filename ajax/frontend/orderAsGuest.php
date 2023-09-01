@@ -8,7 +8,9 @@ use QUI\ERP\Order\Guest\EventHandler;
 
 QUI::$Ajax->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_orderAsGuest',
-    function () {
+    function ($email) {
+        QUI::getSession()->set(EventHandler::EMAIL, $email);
         EventHandler::setGuestOrderFlag();
-    }
+    },
+    ['email']
 );

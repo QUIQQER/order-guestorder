@@ -13,21 +13,32 @@ use function date;
 class EventHandler
 {
     const FLAG = 'guest-order-is-guest';
+    const EMAIL = 'guest-order-email';
 
+    /**
+     * sets the flag, so we know if we are in a guest order
+     *
+     * @return void
+     */
     public static function setGuestOrderFlag()
     {
         QUI::getSession()->set(self::FLAG, 1);
     }
 
+    /**
+     * remove the guest order flag
+     * so, we are not in a guest order anymore
+     */
     public static function removeGuestOrderFlag()
     {
         QUI::getSession()->remove(self::FLAG, 1);
     }
 
     /**
-     * @return GuestOrderUser|null
+     * event that hooks into the onUserGetBySession.
+     * if we are in a guest order, this event returns a GuestOrderUser object to the user handler
      *
-     * @todo prüfen ob nutzer eingeloggt ist (dann keine gast bestellung)
+     * @return GuestOrderUser|null
      */
     public static function onUserGetBySession(): ?GuestOrderUser
     {
@@ -42,12 +53,15 @@ class EventHandler
         return new GuestOrderUser();
     }
 
-    public static function onUserGet(int $id)
+    /**
+     * event that hooks into the UserManager->get().
+     * if the desired user is a GuestOrderUser (id=6), then this is returned.
+     *
+     * @param int $id
+     * @return GuestOrderUser|null
+     */
+    public static function onUserGet(int $id): ?GuestOrderUser
     {
-        if (!QUI::isFrontend()) {
-            return null;
-        }
-
         $Guest = new GuestOrderUser();
 
         if ($Guest->getId() === $id) {
@@ -57,6 +71,17 @@ class EventHandler
         return null;
     }
 
+    /**
+     * event that hooks into the order process
+     *
+     * the order process does not know about a guest order. the guest order has additional
+     * properties to assign an order in process to the guest user.
+     * this event hooks into the getOrder process and returns the guest order if necessary
+     *
+     * @param $OrderProcess
+     * @return QUI\ERP\Order\OrderInProcess|null
+     * @throws QUI\Database\Exception
+     */
     public static function onOrderProcessGetOrder($OrderProcess): ?QUI\ERP\Order\OrderInProcess
     {
         if (!QUI::isFrontend()) {
@@ -113,6 +138,52 @@ class EventHandler
         } catch (\Exception $exception) {
             return null;
         }
+    }
+
+    /**
+     * when the order is sent, it will be checked if this is a guest order.
+     * if so, we create a guest user account
+     *
+     * @param QUI\ERP\Order\OrderProcess $OrderProcess
+     * @return void
+     */
+    public static function onQuiqqerOrderProcessSendCreateOrder(QUI\ERP\Order\OrderProcess $OrderProcess)
+    {
+        try {
+            $Order = $OrderProcess->getOrder();
+        } catch (\Exception $Exception) {
+            return;
+        }
+
+        $Customer = $Order->getCustomer();
+        $GuestUser = new GuestOrderUser();
+
+        // no guest user? we have nothing to do
+        // if yes, we have to create the user
+        if ($Customer->getId() !== $GuestUser->getId()) {
+            return;
+        }
+
+        $CustomerAddress = $Customer->getAddress();
+
+        if (empty($_REQUEST['guest-order-create-account'])) {
+            // create normal account
+            $email = QUI::getSession()->get(self::EMAIL);
+
+            // user already exists
+            if (QUI::getUsers()->usernameExists($email)) {
+                $User = QUI::getUsers()->getUserByName($email);
+            } else {
+                $User = QUI::getUsers()->createChild($email, QUI::getUsers()->getSystemUser());
+                $Address = $User->getStandardAddress();
+            }
+
+            $Order->setCustomer($User);
+            $Order->save();
+
+            return;
+        }
+        // create account via frontend users
     }
 
     /**
