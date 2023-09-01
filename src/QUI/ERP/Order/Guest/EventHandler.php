@@ -168,22 +168,40 @@ class EventHandler
 
         if (empty($_REQUEST['guest-order-create-account'])) {
             // create normal account
+            $SystemUser = QUI::getUsers()->getSystemUser();
             $email = QUI::getSession()->get(self::EMAIL);
 
             // user already exists
             if (QUI::getUsers()->usernameExists($email)) {
                 $User = QUI::getUsers()->getUserByName($email);
             } else {
-                $User = QUI::getUsers()->createChild($email, QUI::getUsers()->getSystemUser());
+                $User = QUI::getUsers()->createChild($email, $SystemUser);
                 $Address = $User->getStandardAddress();
+                $Address->setAttributes($CustomerAddress->getAttributes());
+                $Address->save($SystemUser);
+
+                $User->setAttribute('firstname', $CustomerAddress->getAttribute('firstname'));
+                $User->setAttribute('lastname', $CustomerAddress->getAttribute('lastname'));
+                $User->setAttribute('email', $email);
+
+                try {
+                    if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
+                        $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
+                    }
+                } catch (QUI\Exception $exception) {
+                }
+
+                $User->save($SystemUser);
             }
 
             $Order->setCustomer($User);
-            $Order->save();
+            $Order->setInvoiceAddress($Address);
+            $Order->save($SystemUser);
 
             return;
         }
         // create account via frontend users
+
     }
 
     /**
