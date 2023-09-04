@@ -10,6 +10,7 @@ use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\Smarty\Collector;
 
 use function date;
+use function floatval;
 
 class EventHandler
 {
@@ -322,8 +323,14 @@ class EventHandler
         $calculations = $Order->getArticles()->getCalculations();
         $sum = $calculations['sum'];
 
-        // @todo 500 = setting
-        if ($sum > 500) {
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'anonymous_max_sum'
+        );
+
+        $maxTotal = floatval($maxTotal);
+
+        if ($sum > $maxTotal) {
             return;
         }
 
@@ -369,6 +376,10 @@ class EventHandler
         }
 
         if (!QUI::isFrontend()) {
+            return;
+        }
+
+        if (GuestOrder::isAnonymousOrder()) {
             return;
         }
 

@@ -65,6 +65,19 @@
             <de><![CDATA[Anonyme Bestellung zulassen]]></de>
             <en><![CDATA[Allow anonymous order]]></en>
         </locale>
+
+        <locale name="settings.guest.anonymous_max_sum">
+            <de><![CDATA[Maximal Summe]]></de>
+            <en><![CDATA[Maximum total]]></en>
+        </locale>
+        <locale name="settings.guest.anonymous_max_sum.description">
+            <de><![CDATA[
+            Dies bestimmt, bis zu welcher Summe eine Anonyme Bestellung erlaubt ist, ohne das der Kunde eine Adresse eintragen muss.
+            ]]></de>
+            <en><![CDATA[
+            This determines up to what amount an anonymous order is allowed without the customer having to enter an address.
+            ]]></en>
+        </locale>
     </groups>
 
 </locales>

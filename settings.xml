@@ -8,6 +8,9 @@
                     <type><![CDATA[string]]></type>
                     <defaultvalue>no</defaultvalue>
                 </conf>
+                <conf name="anonymous_max_sum">
+                    <type><![CDATA[string]]></type>
+                </conf>
             </section>
         </config>
 
@@ -31,8 +34,9 @@
                             <locale group="quiqqer/order-guestorder" var="settings.title"/>
                         </title>
 
-
-                        <select conf="guestorder.type">
+                        <select conf="guestorder.type"
+                                data-qui="package/quiqqer/order-guestorder/bin/backend/controls/Settings"
+                        >
                             <text>
                                 <locale group="quiqqer/order-guestorder" var="settings.guest.order.type"/>
                             </text>
@@ -51,6 +55,16 @@
                                 <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.anonymous"/>
                             </option>
                         </select>
+
+                        <input conf="guestorder.anonymous_max_sum" placeholder="500.00">
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.anonymous_max_sum"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.anonymous_max_sum.description"/>
+                            </description>
+                        </input>
                     </settings>
 
                 </category>
