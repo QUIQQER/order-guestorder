@@ -6,8 +6,14 @@ use QUI;
 
 use function dirname;
 
+/**
+ *
+ */
 class GuestOrderButton extends QUI\Control
 {
+    /**
+     * @param $attributes
+     */
     public function __construct($attributes = [])
     {
         $this->setAttributes([
@@ -20,6 +26,10 @@ class GuestOrderButton extends QUI\Control
         parent::__construct($attributes);
     }
 
+    /**
+     * @return string
+     * @throws QUI\Exception
+     */
     public function getBody(): string
     {
         $Engine = QUI::getTemplateManager()->getEngine();

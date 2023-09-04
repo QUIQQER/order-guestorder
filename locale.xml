@@ -33,6 +33,38 @@
             This email is already registered in our system. Please log in with your account data.
             ]]></en>
         </locale>
+
+
+        <locale name="settings.title">
+            <de><![CDATA[Gastbestellung]]></de>
+            <en><![CDATA[Guest order]]></en>
+        </locale>
+        <locale name="settings.guest.order.type">
+            <de><![CDATA[Art der erlaubten Gastbestellung]]></de>
+            <en><![CDATA[Type of the guest order]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.description" htm="true">
+            <de><![CDATA[
+            <p><b>Gastbestellung ohne Registrierung:</b> Kunden können ohne vorherige Anmeldung bestellen, müssen jedoch ihre Adresse angeben.</p>
+            <p><b>Anonyme Bestellung:</b> Kunden können ohne Registrierung bestellen, ohne ihre Adresse preiszugeben.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p><b>Guest order without registration:</b> Customers can order without prior registration, but must provide their address.</p>
+            <p><b>Anonymous order:</b> Customers can order without registering, without revealing their address.</p>
+            ]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.no">
+            <de><![CDATA[Keine Gastbestellung zulassen]]></de>
+            <en><![CDATA[Do not allow guest order]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.noRegistration">
+            <de><![CDATA[Gastbestellung ohne Registrierung zulassen]]></de>
+            <en><![CDATA[Allow guest order without registration]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.anonymous">
+            <de><![CDATA[Anonyme Bestellung zulassen]]></de>
+            <en><![CDATA[Allow anonymous order]]></en>
+        </locale>
     </groups>
 
 </locales>

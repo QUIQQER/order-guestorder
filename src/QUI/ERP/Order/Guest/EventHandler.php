@@ -6,6 +6,7 @@ use QUI;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
 use QUI\ERP\Order\Settings;
+use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\Smarty\Collector;
 
 use function date;
@@ -22,7 +23,9 @@ class EventHandler
      */
     public static function setGuestOrderFlag()
     {
-        QUI::getSession()->set(self::FLAG, 1);
+        if (GuestOrder::isActive()) {
+            QUI::getSession()->set(self::FLAG, 1);
+        }
     }
 
     /**
@@ -31,7 +34,9 @@ class EventHandler
      */
     public static function removeGuestOrderFlag()
     {
-        QUI::getSession()->remove(self::FLAG, 1);
+        if (GuestOrder::isActive()) {
+            QUI::getSession()->remove(self::FLAG);
+        }
     }
 
     /**
@@ -42,6 +47,10 @@ class EventHandler
      */
     public static function onUserGetBySession(): ?GuestOrderUser
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         if (!QUI::isFrontend()) {
             return null;
         }
@@ -62,6 +71,10 @@ class EventHandler
      */
     public static function onUserGet(int $id): ?GuestOrderUser
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         $Guest = new GuestOrderUser();
 
         if ($Guest->getId() === $id) {
@@ -84,6 +97,10 @@ class EventHandler
      */
     public static function onOrderProcessGetOrder($OrderProcess): ?QUI\ERP\Order\OrderInProcess
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         if (!QUI::isFrontend()) {
             return null;
         }
@@ -149,6 +166,10 @@ class EventHandler
      */
     public static function onQuiqqerOrderProcessSendCreateOrder(QUI\ERP\Order\OrderProcess $OrderProcess)
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         try {
             $Order = $OrderProcess->getOrder();
         } catch (\Exception $Exception) {
@@ -214,6 +235,10 @@ class EventHandler
      */
     public static function onQuiqqerOrderClear(AbstractOrder $Order)
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         if (!QUI::isFrontend()) {
             return;
         }
@@ -269,10 +294,66 @@ class EventHandler
         }
     }
 
+    //region Anonymous Order
+
+    /**
+     * @param $OrderProcess
+     * @param AbstractOrder|null $Order
+     *
+     * @return void
+     */
+    public static function onQuiqqerOrderProcessStepsEnd(
+        $OrderProcess,
+        ?AbstractOrder $Order,
+        OrderProcessSteps $Steps
+    ) {
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        if (!GuestOrder::isAnonymousOrder()) {
+            return;
+        }
+
+        if (!$Order) {
+            return;
+        }
+
+        $calculations = $Order->getArticles()->getCalculations();
+        $sum = $calculations['sum'];
+
+        // @todo 500 = setting
+        if ($sum > 500) {
+            return;
+        }
+
+        // don't show the shipping tab
+        // don't show customer tab
+        $steps = $Steps->toArray();
+        $Steps->clear();
+
+        foreach ($steps as $Step) {
+            if (
+                $Step instanceof QUI\ERP\Order\Controls\OrderProcess\CustomerData
+                || $Step instanceof QUI\ERP\Shipping\Order\Shipping
+            ) {
+                continue;
+            }
+
+            $Steps->append($Step);
+        }
+    }
+
+    //endregion
+
     //region extend templates
 
     public static function extendOrder(Collector $Collector)
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         if (!QUI::isFrontend()) {
             return null;
         }
@@ -283,6 +364,10 @@ class EventHandler
 
     public static function extendCheckout(Collector $Collector, $User, $Order)
     {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
         if (!QUI::isFrontend()) {
             return;
         }

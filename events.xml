@@ -2,11 +2,13 @@
 <events>
     <event on="onUserGet" fire="\QUI\ERP\Order\Guest\EventHandler::onUserGet"/>
     <event on="onUserGetBySession" fire="\QUI\ERP\Order\Guest\EventHandler::onUserGetBySession"/>
+    <event on="onQuiqqerOrderProcessStepsEnd" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderProcessStepsEnd"/>
     <event on="onQuiqqerOrderClear" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderClear"/>
     <event on="onOrderProcessGetOrder" fire="\QUI\ERP\Order\Guest\EventHandler::onOrderProcessGetOrder"/>
     <event on="onQuiqqerOrderProcessSendCreateOrder"
            fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderProcessSendCreateOrder"
     />
+
 
     <event on="onQuiqqer::order::orderProcess::nobody::end" fire="\QUI\ERP\Order\Guest\EventHandler::extendOrder"/>
     <event on="onQuiqqer::order::orderProcessCheckoutEnd" fire="\QUI\ERP\Order\Guest\EventHandler::extendCheckout"/>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiqqer>
+    <settings name="ERP">
+
+        <config>
+            <section name="guestorder">
+                <conf name="type">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>no</defaultvalue>
+                </conf>
+            </section>
+        </config>
+
+        <window name="ERP">
+            <title>
+                <locale group="quiqqer/erp" var="window.erp.title"/>
+            </title>
+            <params>
+                <icon>fa fa-sun-o</icon>
+            </params>
+
+            <categories>
+                <category name="order" index="2">
+                    <text>
+                        <locale group="quiqqer/order" var="window.erp.order.title"/>
+                    </text>
+                    <icon>fa fa-shopping-basket</icon>
+
+                    <settings title="guestOrder" name="guestOrder">
+                        <title>
+                            <locale group="quiqqer/order-guestorder" var="settings.title"/>
+                        </title>
+
+
+                        <select conf="guestorder.type">
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.description"/>
+                            </description>
+
+                            <option value="no">
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.no"/>
+                            </option>
+                            <option value="noRegistration">
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.order.type.noRegistration"/>
+                            </option>
+                            <option value="anonymous">
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.anonymous"/>
+                            </option>
+                        </select>
+                    </settings>
+
+                </category>
+            </categories>
+        </window>
+    </settings>
+</quiqqer>
