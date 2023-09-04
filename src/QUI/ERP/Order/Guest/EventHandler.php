@@ -330,7 +330,7 @@ class EventHandler
 
         $maxTotal = floatval($maxTotal);
 
-        if ($sum > $maxTotal) {
+        if (!empty($maxTotal) && $sum > $maxTotal) {
             return;
         }
 
