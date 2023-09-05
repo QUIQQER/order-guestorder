@@ -78,6 +78,27 @@
             This determines up to what amount an anonymous order is allowed without the customer having to enter an address.
             ]]></en>
         </locale>
+
+        <locale name="mail.link.create.account" html="true">
+            <de><![CDATA[
+            Wir möchten dich darauf hinweisen, dass die Registrierung eines Benutzerkontos bei uns nach wie vor möglich ist
+            und mit mehreren Vorteilen verbunden ist. <a href="[link]">Klicke hier um ein neues Benutzerkonto mit
+            dieser E-Mail und dieser Bestellung zu verknüpfen.</a>
+            ]]></de>
+            <en><![CDATA[
+            We would like to inform you that registering a user account with us is still possible and comes with several benefits.
+            <a href="[link]">Click here to link a new account to this email and order.</a>
+            ]]></en>
+        </locale>
+        <locale name="mail.link.create.invoice" html="true">
+            <de><![CDATA[
+            Solltest du doch eine Rechnung für deine aktuelle Bestellung benötigen,
+            steht dir <a href="[link]">hier die Möglichkeit zur Verfügung</a> diese ganz unkompliziert zu erstellen.
+            ]]></de>
+            <en><![CDATA[
+            If you do need an invoice for your current order, <a href="[link]">you can easily create one here.</a>
+            ]]></en>
+        </locale>
     </groups>
 
 </locales>

@@ -7,6 +7,7 @@ use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
 use QUI\ERP\Order\Settings;
 use QUI\ERP\Order\Utils\OrderProcessSteps;
+use QUI\Rewrite;
 use QUI\Smarty\Collector;
 
 use function date;
@@ -37,6 +38,65 @@ class EventHandler
     {
         if (GuestOrder::isActive()) {
             QUI::getSession()->remove(self::FLAG);
+        }
+    }
+
+    public static function onRequest(Rewrite $Rewrite, string $url)
+    {
+        if (
+            !isset($_REQUEST['guestorder'])
+            && !isset($_REQUEST['t'])
+            || (isset($_REQUEST['guestorder']) && (int)$_REQUEST['guestorder'] !== 1)
+        ) {
+            return;
+        }
+
+        // account creation
+        if ($_REQUEST['t'] === 'account') {
+            if (!isset($_REQUEST['u'])) {
+                return;
+            }
+
+            $user = $_REQUEST['u'];
+            $User = null;
+
+            try {
+                $User = QUI::getUsers()->getUserByName($user);
+            } catch (QUI\Exception $exception) {
+            }
+
+            if (!$User) {
+                try {
+                    $User = QUI::getUsers()->getUserByMail($user);
+                } catch (QUI\Exception $exception) {
+                }
+            }
+
+            if (!$User) {
+                // create user via frontend users?
+            }
+
+            if ($User->isActive()) {
+                // @todo weiterleitung zu einem logon
+                return;
+            }
+
+            // @todo benutzer activasion over frontend users
+
+            return;
+        }
+
+
+        // invoice creation
+        if ($_REQUEST['t'] === 'invoice') {
+            if (!isset($_REQUEST['o'])) {
+                return;
+            }
+
+            $order = $_REQUEST['o'];
+
+
+            return;
         }
     }
 
@@ -187,16 +247,16 @@ class EventHandler
         }
 
         $CustomerAddress = $Customer->getAddress();
+        $SystemUser = QUI::getUsers()->getSystemUser();
+        $email = QUI::getSession()->get(self::EMAIL);
 
         if (empty($_REQUEST['guest-order-create-account'])) {
             // create normal account
-            $SystemUser = QUI::getUsers()->getSystemUser();
-            $email = QUI::getSession()->get(self::EMAIL);
-
-            // user already exists
             if (QUI::getUsers()->usernameExists($email)) {
+                // user already exists
                 $User = QUI::getUsers()->getUserByName($email);
             } else {
+                // create user account -> guest user
                 $User = QUI::getUsers()->createChild($email, $SystemUser);
                 $Address = $User->getStandardAddress();
                 $Address->setAttributes($CustomerAddress->getAttributes());
@@ -222,8 +282,42 @@ class EventHandler
 
             return;
         }
-        // create account via frontend users
 
+        // the user wanted an account after all, and he has checked the checkbox
+        // we have to create an account via frontend users because of the mail auth stuff
+        $_POST['registration'] = true;
+        $_POST['termsOfUseAccepted'] = true;
+        $_POST['email'] = QUI::getSession()->get(self::EMAIL);
+
+        $EmailRegistrar = new QUI\FrontendUsers\Registrars\Email\Registrar();
+        $EmailRegistrar->setAttribute('email', $email);
+
+        $Registration = new QUI\FrontendUsers\Controls\Registration();
+        $Registration->setAttribute('Registrar', $EmailRegistrar);
+        $Registration->register();
+
+        $User = $Registration->getRegisteredUser();
+
+        $Address = $User->getStandardAddress();
+        $Address->setAttributes($CustomerAddress->getAttributes());
+        $Address->save($SystemUser);
+
+        $User->setAttribute('firstname', $CustomerAddress->getAttribute('firstname'));
+        $User->setAttribute('lastname', $CustomerAddress->getAttribute('lastname'));
+        $User->setAttribute('email', $email);
+
+        try {
+            if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
+                $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
+            }
+        } catch (QUI\Exception $exception) {
+        }
+
+        $User->save($SystemUser);
+
+        $Order->setCustomer($User);
+        $Order->setInvoiceAddress($Address);
+        $Order->save($SystemUser);
     }
 
     /**
@@ -392,6 +486,51 @@ class EventHandler
                 </label>
             </div>'
         );
+    }
+
+    public static function extendMail(Collector $Collector, AbstractOrder $Order, $Articles)
+    {
+        if (!GuestOrder::isActive()) {
+            return null;
+        }
+
+        // activated users do not need activation links
+        $Customer = $Order->getCustomer();
+
+        if ($Customer->getId()) {
+            try {
+                $User = QUI::getUsers()->get($Customer->getId());
+
+                if ($User->isActive()) {
+                    return;
+                }
+            } catch (QUI\Exception $exception) {
+            }
+        }
+
+        $html = '<div style="margin-top: 20px; border: 1px solid #ddd; padding: 10px; background: #f8f8f8">';
+        $invoiceLink = GuestOrder::getInvoiceCreationLink($Order);
+        $createAccountLink = GuestOrder::getAccountCreationLink($Order);
+
+        if (GuestOrder::isAnonymousOrder()) {
+            // Anonyme Bestellung: Rechnungserzeugung oder Kundenkonto anlegen
+            $html .= QUI::getLocale()->get('quiqqer/order-guestorder', 'mail.link.create.invoice', [
+                'link' => $invoiceLink
+            ]);
+
+            $html .= '<br />';
+            $html .= '<br />';
+        }
+
+        $html .= QUI::getLocale()->get('quiqqer/order-guestorder', 'mail.link.create.account', [
+            'link' => $createAccountLink
+        ]);
+
+        $html .= '</div>';
+
+        if (!empty($html)) {
+            $Collector->append($html);
+        }
     }
 
     //endregion
