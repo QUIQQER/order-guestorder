@@ -7,8 +7,11 @@ use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
 use QUI\ERP\Order\Settings;
 use QUI\ERP\Order\Utils\OrderProcessSteps;
+use QUI\Mail\Mailer;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 use function date;
 use function floatval;
@@ -77,17 +80,64 @@ class EventHandler
             }
 
             if ($User->isActive()) {
-                // @todo weiterleitung zu einem logon
-                return;
+                $Redirect = new RedirectResponse(QUI::getRewrite()->getProject()->getVHost(true, true));
+                $Redirect->setStatusCode(Response::HTTP_SEE_OTHER);
+                $Redirect->send();
+                exit;
             }
 
-            // @todo benutzer activasion over frontend users
+            // password mail and activation mail
+            $newPassword = QUI\Security\Password::generateRandom();
+
+            $User->setPassword($newPassword, QUI::getUsers()->getSystemUser());
+            $User->setAttribute('quiqqer.set.new.password', true);
+            $User->save(QUI::getUsers()->getSystemUser());
+
+            if (!$User->isActive()) {
+                $User->activate(false, QUI::getUsers()->getSystemUser());
+            }
+
+            // send mail
+            $email = $User->getAttribute('email');
+
+            $Mailer = new Mailer();
+            $Mailer->addRecipient($email);
+
+            $Mailer->setSubject(
+                QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.subject')
+            );
+
+            $body = QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body', [
+                'name' => $User->getName(),
+                'password' => $newPassword,
+                'forceNewMsg' => QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body.force_new')
+            ]);
+
+            $Mailer->setBody($body);
+            $Mailer->send();
+
+
+            $Site = $Rewrite->getSite();
+            $Site->setAttribute('short', '');
+            $Site->setAttribute('type', 'standard');
+            $Site->setAttribute('meta.canonical', $Site->getUrlRewrittenWithHost());
+            $Site->setAttribute('quiqqer.bricks.areas', '');
+
+            $Site->setAttribute(
+                'content',
+
+                '<div class="messages message-success">' .
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.registration.password.info') .
+                '</div>'
+            );
+
 
             return;
         }
 
 
         // invoice creation
+        // @todo
         if ($_REQUEST['t'] === 'invoice') {
             if (!isset($_REQUEST['o'])) {
                 return;
