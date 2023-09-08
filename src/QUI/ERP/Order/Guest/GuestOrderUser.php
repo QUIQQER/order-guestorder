@@ -56,7 +56,13 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
      */
     public function getUsername(): string
     {
-        return QUI::getLocale()->get('quiqqer/order-guestorder', 'guest.username');
+        $username = QUI::getLocale()->get('quiqqer/order-guestorder', 'guest.username');
+
+        if ($this->getAttribute('email')) {
+            $username .= ':' . $this->getAttribute('email');
+        }
+        
+        return $username;
     }
 
     //region setter

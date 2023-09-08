@@ -77,13 +77,13 @@ class EventHandler
 
             if (!$User) {
                 // create user via frontend users?
+                self::showSiteError();
+                return;
             }
 
             if ($User->isActive()) {
-                $Redirect = new RedirectResponse(QUI::getRewrite()->getProject()->getVHost(true, true));
-                $Redirect->setStatusCode(Response::HTTP_SEE_OTHER);
-                $Redirect->send();
-                exit;
+                self::redirectToMainSite();
+                return;
             }
 
             // password mail and activation mail
@@ -117,36 +117,19 @@ class EventHandler
             $Mailer->send();
 
 
-            $Site = $Rewrite->getSite();
-            $Site->setAttribute('short', '');
-            $Site->setAttribute('type', 'standard');
-            $Site->setAttribute('meta.canonical', $Site->getUrlRewrittenWithHost());
-            $Site->setAttribute('quiqqer.bricks.areas', '');
-
-            $Site->setAttribute(
-                'content',
-
+            self::setSiteContent(
                 '<div class="messages message-success">' .
                 QUI::getLocale()->get('quiqqer/order-guestorder', 'message.registration.password.info') .
                 '</div>'
             );
-
 
             return;
         }
 
 
         // invoice creation
-        // @todo
-        if ($_REQUEST['t'] === 'invoice') {
-            if (!isset($_REQUEST['o'])) {
-                return;
-            }
-
-            $order = $_REQUEST['o'];
-
-
-            return;
+        if ($_REQUEST['t'] === 'invoice' && isset($_REQUEST['o'])) {
+            self::onRequestInvoiceCreation();
         }
     }
 
@@ -305,6 +288,10 @@ class EventHandler
             if (QUI::getUsers()->usernameExists($email)) {
                 // user already exists
                 $User = QUI::getUsers()->getUserByName($email);
+                $Order->setCustomer($User);
+            } elseif (GuestOrder::isAnonymousOrder()) {
+                $GuestUser->setAttribute('email', $email);
+                $Order->setCustomer($GuestUser);
             } else {
                 // create user account -> guest user
                 $User = QUI::getUsers()->createChild($email, $SystemUser);
@@ -324,10 +311,10 @@ class EventHandler
                 }
 
                 $User->save($SystemUser);
+                $Order->setCustomer($User);
+                $Order->setInvoiceAddress($Address);
             }
 
-            $Order->setCustomer($User);
-            $Order->setInvoiceAddress($Address);
             $Order->save($SystemUser);
 
             return;
@@ -562,7 +549,7 @@ class EventHandler
         $invoiceLink = GuestOrder::getInvoiceCreationLink($Order);
         $createAccountLink = GuestOrder::getAccountCreationLink($Order);
 
-        if (GuestOrder::isAnonymousOrder()) {
+        if (GuestOrder::isAnonymousOrder() && QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
             // Anonyme Bestellung: Rechnungserzeugung oder Kundenkonto anlegen
             $html .= QUI::getLocale()->get('quiqqer/order-guestorder', 'mail.link.create.invoice', [
                 'link' => $invoiceLink
@@ -584,4 +571,80 @@ class EventHandler
     }
 
     //endregion
+
+    protected static function onRequestInvoiceCreation()
+    {
+        if (!QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
+            self::redirectToMainSite();
+            return;
+        }
+
+        $order = $_REQUEST['o'];
+
+        try {
+            $Order = QUI\ERP\Order\Handler::getInstance()->getOrderByHash($order);
+        } catch (\Exception $exception) {
+            self::redirectToMainSite();
+            return;
+        }
+
+        try {
+            $Customer = $Order->getCustomer();
+            $User = QUI::getUsers()->get($Customer->getId());
+
+            // check address
+            $Address = $Order->getInvoiceAddress();
+            $missing = QUI\ERP\Accounting\Invoice\Utils\Invoice::getMissingAddressData($Address->getAttributes());
+
+            if (!count($missing)) {
+                // alles passt, dann kann eine invoice angelegt werden
+                $Order->createInvoice(QUI::getUserBySession());
+                return;
+            }
+
+            // wenn nutzer aktiv ist, muss dieser sich anmelden und die address daten eingaben
+            if ($User->isActive()) {
+                $Login = new QUI\Users\Controls\Login();
+
+                $html = '<div class="messages message-attention">';
+                $html .= 'Bitte melde dich an und gebe deine richtigen Addressdaten ein.';
+                $html .= '</div>';
+                $html .= $Login->create();
+
+                self::setSiteContent($html);
+                return;
+            }
+            // @todo
+
+        } catch (QUI\Exception $exception) {
+            self::showSiteError();
+        }
+    }
+
+    protected static function redirectToMainSite()
+    {
+        $Redirect = new RedirectResponse(QUI::getRewrite()->getProject()->getVHost(true, true));
+        $Redirect->setStatusCode(Response::HTTP_SEE_OTHER);
+        $Redirect->send();
+        exit;
+    }
+
+    protected static function setSiteContent($content)
+    {
+        $Site = QUI::getRewrite()->getSite();
+        $Site->setAttribute('short', '');
+        $Site->setAttribute('type', 'standard');
+        $Site->setAttribute('meta.canonical', $Site->getUrlRewrittenWithHost());
+        $Site->setAttribute('quiqqer.bricks.areas', '');
+        $Site->setAttribute('content', $content);
+    }
+
+    protected static function showSiteError()
+    {
+        self::setSiteContent(
+            '<div class="messages message-error">' .
+            QUI::getLocale()->get('quiqqer/order-guestorder', 'site.message.error') .
+            '</div>'
+        );
+    }
 }

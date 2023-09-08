@@ -101,12 +101,28 @@
         </locale>
         <locale name="message.registration.password.info" html="true">
             <de><![CDATA[
+            Danke, dass du dich dazu entschieden hast, dich bei unserem Shop zu registrieren.
             Damit du dich einloggen kannst, haben wir dir ein Passwort an deine E-Mail-Adresse gesendet.
-            Bei deinem ersten Login wirst du gebeten, dein Passwort zu ändern.
+            Bei deinem ersten Login wirst du gebeten, dein Passwort zu aktualisieren.
             ]]></de>
             <en><![CDATA[
-            In order for you to log in, we have sent a password to your email address.
-            When you log in for the first time, you will be asked to change your password.
+            Thank you for choosing to register with our store.
+            In order for you to log in, we have sent you a password to your email address.
+            When you log in for the first time, you will be asked to update your password.
+            ]]></en>
+        </locale>
+        <locale name="site.message.error" html="true">
+            <de><![CDATA[
+            <h1>Es tut uns leid, aber ein Fehler ist aufgetreten.</h1>
+            <p>Leider ist bei Ihrer Nutzung unserer Website/Anwendung ein unerwarteter Fehler aufgetreten.
+            Wir entschuldigen uns für die Unannehmlichkeiten. Bitte kontaktieren Sie uns, damit wir Ihnen weiterhelfen können.</p>
+            <p>Vielen Dank für Ihr Verständnis.</p>
+            ]]></de>
+            <en><![CDATA[
+            <h1>We are sorry, but an error has occurred</h1>.
+            <p>Unfortunately, an unexpected error occurred while you were using our website/app.
+            We apologize for the inconvenience. Please contact us so that we can assist you further.</p>
+            <p>Thank you for your understanding.</p>
             ]]></en>
         </locale>
 
