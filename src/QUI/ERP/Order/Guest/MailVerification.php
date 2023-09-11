@@ -4,6 +4,10 @@ namespace QUI\ERP\Order\Guest;
 
 use QUI\Verification\AbstractVerification;
 
+/**
+ * Wenn doppelt bestellt wurde
+ * Muss die Mail verifiziert werden
+ */
 class MailVerification extends AbstractVerification
 {
 

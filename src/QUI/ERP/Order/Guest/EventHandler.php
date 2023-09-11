@@ -5,8 +5,12 @@ namespace QUI\ERP\Order\Guest;
 use QUI;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
+use QUI\ERP\Order\OrderProcess;
 use QUI\ERP\Order\Settings;
 use QUI\ERP\Order\Utils\OrderProcessSteps;
+use QUI\Exception;
+use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
+use QUI\Interfaces\Users\User;
 use QUI\Mail\Mailer;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
@@ -44,85 +48,32 @@ class EventHandler
         }
     }
 
+    /**
+     * Handles the onRequest event triggered by the Rewrite class
+     *
+     * @param Rewrite $Rewrite The Rewrite object that triggered the event
+     * @param string $url The URL associated with the event
+     * @return void
+     *
+     * @throws Exception
+     * @throws QUI\FrontendUsers\Exception
+     * @throws UserAlreadyExistsException
+     * @throws \PHPMailer\PHPMailer\Exception
+     */
     public static function onRequest(Rewrite $Rewrite, string $url)
     {
         if (
             !isset($_REQUEST['guestorder'])
-            && !isset($_REQUEST['t'])
-            || (isset($_REQUEST['guestorder']) && (int)$_REQUEST['guestorder'] !== 1)
+            || !isset($_REQUEST['t'])
+            || !isset($_REQUEST['o'])
+            || !isset($_REQUEST['u'])
         ) {
             return;
         }
 
         // account creation
         if ($_REQUEST['t'] === 'account') {
-            if (!isset($_REQUEST['u'])) {
-                return;
-            }
-
-            $user = $_REQUEST['u'];
-            $User = null;
-
-            try {
-                $User = QUI::getUsers()->getUserByName($user);
-            } catch (QUI\Exception $exception) {
-            }
-
-            if (!$User) {
-                try {
-                    $User = QUI::getUsers()->getUserByMail($user);
-                } catch (QUI\Exception $exception) {
-                }
-            }
-
-            if (!$User) {
-                // create user via frontend users?
-                self::showSiteError();
-                return;
-            }
-
-            if ($User->isActive()) {
-                self::redirectToMainSite();
-                return;
-            }
-
-            // password mail and activation mail
-            $newPassword = QUI\Security\Password::generateRandom();
-
-            $User->setPassword($newPassword, QUI::getUsers()->getSystemUser());
-            $User->setAttribute('quiqqer.set.new.password', true);
-            $User->save(QUI::getUsers()->getSystemUser());
-
-            if (!$User->isActive()) {
-                $User->activate(false, QUI::getUsers()->getSystemUser());
-            }
-
-            // send mail
-            $email = $User->getAttribute('email');
-
-            $Mailer = new Mailer();
-            $Mailer->addRecipient($email);
-
-            $Mailer->setSubject(
-                QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.subject')
-            );
-
-            $body = QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body', [
-                'name' => $User->getName(),
-                'password' => $newPassword,
-                'forceNewMsg' => QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body.force_new')
-            ]);
-
-            $Mailer->setBody($body);
-            $Mailer->send();
-
-
-            self::setSiteContent(
-                '<div class="messages message-success">' .
-                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.registration.password.info') .
-                '</div>'
-            );
-
+            self::onRequestUserCreation();
             return;
         }
 
@@ -255,8 +206,14 @@ class EventHandler
      * when the order is sent, it will be checked if this is a guest order.
      * if so, we create a guest user account
      *
-     * @param QUI\ERP\Order\OrderProcess $OrderProcess
+     * @param OrderProcess $OrderProcess
      * @return void
+     * @throws Exception
+     * @throws QUI\ERP\Exception
+     * @throws QUI\FrontendUsers\Exception
+     * @throws QUI\Permissions\Exception
+     * @throws QUI\Users\Exception
+     * @throws UserAlreadyExistsException
      */
     public static function onQuiqqerOrderProcessSendCreateOrder(QUI\ERP\Order\OrderProcess $OrderProcess)
     {
@@ -429,13 +386,17 @@ class EventHandler
     //region Anonymous Order
 
     /**
-     * @param $OrderProcess
-     * @param AbstractOrder|null $Order
+     * Remove unwanted steps from the order process, if the order is a guest order
+     *
+     * @param OrderProcess $OrderProcess - The current order process instance
+     * @param AbstractOrder|null $Order - The current order object (or null if not available)
+     * @param OrderProcessSteps $Steps - The order process steps object
      *
      * @return void
+     * @throws Exception
      */
     public static function onQuiqqerOrderProcessStepsEnd(
-        $OrderProcess,
+        OrderProcess $OrderProcess,
         ?AbstractOrder $Order,
         OrderProcessSteps $Steps
     ) {
@@ -486,6 +447,12 @@ class EventHandler
 
     //region extend templates
 
+    /**
+     * extends the order process login with a guest order button
+     *
+     * @param Collector $Collector The collector object to append the guest order button to
+     * @return void
+     */
     public static function extendOrder(Collector $Collector)
     {
         if (!GuestOrder::isActive()) {
@@ -500,6 +467,14 @@ class EventHandler
         $Collector->append($GuestInit->create());
     }
 
+    /**
+     * Extend the checkout process for guest order account creation
+     *
+     * @param Collector $Collector - The collector object used to collect the output
+     * @param mixed $User - The user object
+     * @param mixed $Order - The order object
+     * @return void
+     */
     public static function extendCheckout(Collector $Collector, $User, $Order)
     {
         if (!GuestOrder::isActive()) {
@@ -525,6 +500,15 @@ class EventHandler
         );
     }
 
+    /**
+     * Extends the mail content with links for guest orders (account creation / invoice creation)
+     *
+     * @param Collector $Collector - The mail content collector
+     * @param AbstractOrder $Order - The order object
+     * @param array $Articles - The order articles
+     *
+     * @return void
+     */
     public static function extendMail(Collector $Collector, AbstractOrder $Order, $Articles)
     {
         if (!GuestOrder::isActive()) {
@@ -538,7 +522,7 @@ class EventHandler
             try {
                 $User = QUI::getUsers()->get($Customer->getId());
 
-                if ($User->isActive()) {
+                if ($User->isActive() && !($User instanceof GuestOrderUser)) {
                     return;
                 }
             } catch (QUI\Exception $exception) {
@@ -572,6 +556,147 @@ class EventHandler
 
     //endregion
 
+    /**
+     * Method: onRequestUserCreation
+     *
+     * Description:
+     * This method is used to handle the creation of a user account for a guest order. It takes the order hash from the
+     * request ($_REQUEST['o']) and retrieves the associated order. Then it checks if a user with the given username ($_REQUEST['u'])
+     * or email exists. If not, it creates a new user using the provided email as the username and sends a new password mail.
+     * If the user is already active, the method redirects to the main site. If the user is successfully created or the user
+     * already exists, a success message is displayed.
+     *
+     * @return void
+     * @throws Exception
+     * @throws QUI\FrontendUsers\Exception
+     * @throws UserAlreadyExistsException
+     * @throws \PHPMailer\PHPMailer\Exception
+     */
+    protected static function onRequestUserCreation()
+    {
+        try {
+            $Order = QUI\ERP\Order\Handler::getInstance()->getOrderByHash($_REQUEST['o']);
+        } catch (\Exception $exception) {
+            self::redirectToMainSite();
+            return;
+        }
+
+        $user = $_REQUEST['u'];
+        $User = null;
+
+        try {
+            $User = QUI::getUsers()->getUserByName($user);
+        } catch (QUI\Exception $exception) {
+        }
+
+        if (!$User) {
+            try {
+                $User = QUI::getUsers()->getUserByMail($user);
+            } catch (QUI\Exception $exception) {
+            }
+        }
+
+        if (!$User) {
+            // anonymous order
+            $Customer = $Order->getCustomer();
+            $email = $Customer->getAttribute('email');
+
+            if ($email !== $user) {
+                self::redirectToMainSite();
+                return;
+            }
+
+            // create user
+            $_POST['registration'] = true;
+            $_POST['termsOfUseAccepted'] = true;
+            $_POST['email'] = $email;
+
+            $EmailRegistrar = new QUI\FrontendUsers\Registrars\Email\Registrar();
+            $EmailRegistrar->setAttribute('email', $email);
+
+            $Registration = new QUI\FrontendUsers\Controls\Registration();
+            $Registration->setAttribute('Registrar', $EmailRegistrar);
+            $Registration->register();
+
+            $User = $Registration->getRegisteredUser();
+            self::sendNewPasswordMail($User);
+
+            self::setSiteContent(
+                '<div class="messages message-success">' .
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.registration.password.info') .
+                '</div>'
+            );
+
+            return;
+        }
+
+        if ($User->isActive()) {
+            self::redirectToMainSite();
+            return;
+        }
+
+        self::sendNewPasswordMail($User);
+
+        self::setSiteContent(
+            '<div class="messages message-success">' .
+            QUI::getLocale()->get('quiqqer/order-guestorder', 'message.registration.password.info') .
+            '</div>'
+        );
+    }
+
+    /**
+     * Sends a new password email to the specified user
+     *
+     * @param User $User The user object to send the email to
+     *
+     * @return void
+     * @throws Exception
+     * @throws \PHPMailer\PHPMailer\Exception
+     */
+    protected static function sendNewPasswordMail(QUI\Interfaces\Users\User $User)
+    {
+        // password mail and activation mail
+        $newPassword = QUI\Security\Password::generateRandom();
+
+        $User->setPassword($newPassword, QUI::getUsers()->getSystemUser());
+        $User->setAttribute('quiqqer.set.new.password', true);
+        $User->save(QUI::getUsers()->getSystemUser());
+
+        if (!$User->isActive()) {
+            $User->activate(false, QUI::getUsers()->getSystemUser());
+        }
+
+        // send mail
+        $email = $User->getAttribute('email');
+
+        $Mailer = new Mailer();
+        $Mailer->addRecipient($email);
+
+        $Mailer->setSubject(
+            QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.subject')
+        );
+
+        $body = QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body', [
+            'name' => $User->getName(),
+            'password' => $newPassword,
+            'forceNewMsg' => QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body.force_new')
+        ]);
+
+        $Mailer->setBody($body);
+        $Mailer->send();
+    }
+
+    /**
+     * Handle the request for invoice creation.
+     *
+     * If the 'quiqqer/invoice' package is not installed, redirects to the main site.
+     * If the order cannot be retrieved or an exception occurs, redirects to the main site.
+     * Checks the address data for any missing information, if none, creates an invoice for the order.
+     * If the user is active, prompts them to log in and enter their address data.
+     * If an exception occurs during the process, displays an error message.
+     *
+     * @return void
+     */
     protected static function onRequestInvoiceCreation()
     {
         if (!QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
@@ -621,6 +746,12 @@ class EventHandler
         }
     }
 
+    /**
+     * Redirects the user to the main website
+     *
+     * @return void
+     * @throws Exception
+     */
     protected static function redirectToMainSite()
     {
         $Redirect = new RedirectResponse(QUI::getRewrite()->getProject()->getVHost(true, true));
@@ -629,7 +760,15 @@ class EventHandler
         exit;
     }
 
-    protected static function setSiteContent($content)
+    /**
+     * Sets the content of the current site.
+     *
+     * @param string $content The content to be set.
+     *
+     * @return void
+     * @throws Exception
+     */
+    protected static function setSiteContent(string $content)
     {
         $Site = QUI::getRewrite()->getSite();
         $Site->setAttribute('short', '');
@@ -639,6 +778,12 @@ class EventHandler
         $Site->setAttribute('content', $content);
     }
 
+    /**
+     * Displays a site error message on the page
+     *
+     * @return void
+     * @throws Exception
+     */
     protected static function showSiteError()
     {
         self::setSiteContent(

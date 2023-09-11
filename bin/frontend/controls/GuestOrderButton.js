@@ -58,6 +58,11 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/GuestOrderButton'
 
                 this.next();
             });
+
+            this.getElm().getElement('[name="guest-order-enter-termsSubmit"]').addEvent('click', (e) => {
+                e.stop();
+                this.next();
+            });
         },
 
         next: function() {

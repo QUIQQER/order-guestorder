@@ -5,6 +5,8 @@ namespace QUI\ERP\Order\Guest;
 use QUI;
 use QUI\System\Log;
 
+use function http_build_query;
+
 class GuestOrder
 {
     /**
@@ -55,8 +57,14 @@ class GuestOrder
     {
         $DefaultProject = QUI::getProjectManager()->getStandard();
         $host = $DefaultProject->getVHost(true, true);
+        $Customer = $Order->getCustomer();
 
-        return $host . '/?guestorder=1&t=invoice&o=' . $Order->getHash();
+        return $host . '/?' . http_build_query([
+                'guestorder' => 1,
+                't' => 'invoice',
+                'u' => $Customer->getAttribute('email'),
+                'o' => $Order->getHash()
+            ]);
     }
 
     public static function getAccountCreationLink(QUI\ERP\Order\AbstractOrder $Order): string
@@ -64,7 +72,12 @@ class GuestOrder
         $DefaultProject = QUI::getProjectManager()->getStandard();
         $host = $DefaultProject->getVHost(true, true);
         $Customer = $Order->getCustomer();
-
-        return $host . '/?guestorder=1&t=account&u=' . $Customer->getAttribute('email');
+        
+        return $host . '/?' . http_build_query([
+                'guestorder' => 1,
+                't' => 'account',
+                'u' => $Customer->getAttribute('email'),
+                'o' => $Order->getHash()
+            ]);
     }
 }
