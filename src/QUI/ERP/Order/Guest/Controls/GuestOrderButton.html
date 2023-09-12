@@ -1,23 +1,23 @@
 <div class="quiqqer-order-ordering-nobody-guestOrder">
     <form name="" method="POST">
-        <h2>Als Gast bestellen</h2>
+        <h2>{locale group="quiqqer/order-guestorder" var="control.guestOrderButton.header"}</h2>
 
         <div class="step" style="display: none">
             <button name="guest-order">
-                Ich möchte die Bestellung als Gast durchführen.
+                {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.button"}
             </button>
         </div>
 
         <div class="step quiqqer-order-ordering-nobody-guestOrder-email" style="display: none">
-            <p>Um deine Bestellung aufzugeben, benötigen wir deine E-Mail-Adresse. Sobald du diese angibst,
-                kannst du ganz einfach als Gast fortfahren und deine Bestellung abschließen.</p>
+            {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.info"}
+
             <label>
-                <span>E-Mail</span>
+                <span>{locale group="quiqqer/quiqqer" var="email"}</span>
                 <input type="email" name="guest-order-enter-email"/>
             </label>
 
             <button name="guest-order-enter-emailSubmit">
-                Weiter
+                {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.next"}
             </button>
         </div>
 
@@ -27,7 +27,7 @@
             </span>
 
             <button name="guest-order-enter-termsSubmit">
-                Weiter
+                {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.next"}
             </button>
         </div>
     </form>

@@ -8,8 +8,6 @@ use QUI\Exception;
 use function json_decode;
 
 /**
- * @todo addresses
- * @todo company stuff
  */
 class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\User
 {

@@ -241,6 +241,45 @@
             You will be automatically redirected to the order page in a few seconds.
             ]]></en>
         </locale>
+    </groups>
+
+    <groups name="quiqqer/order-guestorder" datatype="php">
+        <locale name="control.guestOrderButton.header">
+            <de><![CDATA[Als Gast bestellen]]></de>
+            <en><![CDATA[Order as guest]]></en>
+        </locale>
+        <locale name="control.guestOrderButton.button">
+            <de><![CDATA[Ich möchte die Bestellung als Gast durchführen.]]></de>
+            <en><![CDATA[I would like to place the order as a guest.]]></en>
+        </locale>
+        <locale name="control.guestOrderButton.next">
+            <de><![CDATA[Weiter]]></de>
+            <en><![CDATA[Next]]></en>
+        </locale>
+        <locale name="control.guestOrderButton.info">
+            <de><![CDATA[
+            <p>Um deine Bestellung aufzugeben, benötigen wir deine E-Mail-Adresse. Sobald du diese angibst,
+                kannst du ganz einfach als Gast fortfahren und deine Bestellung abschließen.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p>To place your order, we need your email address. Once you provide this,
+            you can easily proceed as a guest and complete your order.</p>
+            ]]></en>
+        </locale>
+
+
+        <locale name="control.missingAddressData.header">
+            <de><![CDATA[Fehlende Adressdaten]]></de>
+            <en><![CDATA[Missing address data]]></en>
+        </locale>
+        <locale name="control.missingAddressData.text">
+            <de><![CDATA[
+            <p>Um Ihnen eine Rechnung ordnungsgemäß ausstellen zu können, bitten wir Sie, Ihre Adressdaten sorgfältig einzugeben.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p>In order to properly issue you an invoice, we ask that you carefully enter your address information.</p>
+            ]]></en>
+        </locale>
 
     </groups>
 
