@@ -4,6 +4,12 @@
  * This file contains package_quiqqer_order-guestorder_ajax_frontend_checkMail
  */
 
+/**
+ * 1 = user exists and is active
+ * 0 = user exists and is not active
+ * -1 = no user exists
+ */
+
 QUI::$Ajax->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_checkMail',
     function ($email) {
@@ -11,8 +17,10 @@ QUI::$Ajax->registerFunction(
             $User = QUI::getUsers()->getUserByName($email);
 
             if ($User->isActive()) {
-                return true;
+                return 1;
             }
+
+            return 0;
         } catch (\Exception $exception) {
         }
 
@@ -20,12 +28,14 @@ QUI::$Ajax->registerFunction(
             $User = QUI::getUsers()->getUserByMail($email);
 
             if ($User->isActive()) {
-                return true;
+                return 1;
             }
+
+            return 0;
         } catch (\Exception $exception) {
         }
 
-        return false;
+        return -1;
     },
     ['email']
 );

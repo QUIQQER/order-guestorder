@@ -151,8 +151,11 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/GuestOrderButton'
 
             // email check
             // wenn email konto aktiv, bitte anmelden
-            QUIAjax.get('package_quiqqer_order-guestorder_ajax_frontend_checkMail', function(mailExists) {
-                if (mailExists) {
+            QUIAjax.get('package_quiqqer_order-guestorder_ajax_frontend_checkMail', (status) => {
+                status = parseInt(status);
+
+                if (status === 1) {
+                    // user already exists and is active
                     OrderProcess.Loader.hide();
 
                     QUI.getMessageHandler().then((MH) => {
@@ -169,6 +172,36 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/GuestOrderButton'
 
                     return;
                 }
+
+                if (status === 0) {
+                    // user already exists and is not active
+                    // so, he has been here before
+                    // we need email auth
+                    QUIAjax.post('package_quiqqer_order-guestorder_ajax_frontend_emailAuth', () => {
+
+                        this.$hide(this.$Current).then(() => {
+                            const alreadyExists = new Element('div', {
+                                'class': 'step content-message-attention',
+                                html: QUILocale.get('quiqqer/order-guestorder', 'message.account.alreadyExists', {
+                                    email: Email.value
+                                }),
+                                style: {
+                                    opacity: 0
+                                }
+                            }).inject(this.getElm().getElement('form'));
+
+                            return this.$show(alreadyExists);
+                        });
+
+                        OrderProcess.Loader.hide();
+                    }, {
+                        'package': 'quiqqer/order-guestorder',
+                        email: Email.value
+                    });
+
+                    return;
+                }
+
 
                 QUIAjax.post('package_quiqqer_order-guestorder_ajax_frontend_orderAsGuest', () => {
                     window.location.reload();

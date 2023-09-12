@@ -1,0 +1,20 @@
+.quiqqer-order-customerData-comment {
+    display: none;
+}
+
+.quiqqer-order-customerData header {
+    display: none;
+}
+
+.quiqqer-order-customerData-container {
+    margin-bottom: 20px;
+}
+
+.quiqqer-order-customerData-display {
+    display: none !important;
+}
+
+.quiqqer-order-customerData-edit {
+    display: inline !important;
+    margin-top: 0;
+}

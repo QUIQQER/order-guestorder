@@ -16,7 +16,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
     public function __construct()
     {
         parent::__construct();
-        return;
+
         $firstname = $this->getAttribute('firstname');
 
         if (empty($firstname)) {
@@ -61,7 +61,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         if ($this->getAttribute('email')) {
             $username .= ':' . $this->getAttribute('email');
         }
-        
+
         return $username;
     }
 

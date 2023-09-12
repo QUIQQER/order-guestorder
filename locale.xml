@@ -170,6 +170,77 @@
             <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a>.
             ]]></en>
         </locale>
+        <locale name="message.active.account" html="true">
+            <de><![CDATA[
+            Unter dieser E-Mail-Adresse existiert bereits ein aktiver Account. Bitte logg dich ein und gib gegebenenfalls deine richtigen Adressdaten ein.
+            ]]></de>
+            <en><![CDATA[
+            An active account already exists under this email address. Please log in and enter your correct address data if necessary.
+            ]]></en>
+        </locale>
+        <locale name="message.account.alreadyExists">
+            <de><![CDATA[
+            Wir möchten darauf hinweisen, dass bereits Bestellungen unter dieser E-Mail-Adresse in unserem System existieren.
+            Um eine weitere Bestellung mit dieser Adresse zu ermöglichen, sendeten wir dir einen Validierungslink an [email].
+            Bitte klicke auf den Link in der E-Mail oder verwende eine andere E-Mail-Adresse für deine Bestellung.
+            ]]></de>
+            <en><![CDATA[
+            We would like to point out that orders under this email address already exist in our system.
+            To enable another order with this address, we sent you a validation link to [email].
+            Please click on the link in the email or use another email address for your order.
+            ]]></en>
+        </locale>
+
+        <locale name="mail.auth.subject">
+            <de><![CDATA[Authentifizierung deiner Gastbestellung]]></de>
+            <en><![CDATA[Authentication of your guest order]]></en>
+        </locale>
+        <locale name="mail.auth.body" html="true">
+            <de><![CDATA[
+            <h1>Hallo,</h1>
+            <p>Vielen Dank für dein Interesse an unseren Produkten und deine vorherige Gastbestellung unter der E-Mail-Adresse [email].</p>
+
+            <p>Um sicherzustellen, dass deine erneute Bestellung reibungslos verarbeitet werden kann, benötigen wir eine kurze Bestätigung deiner E-Mail-Adresse.
+            Bitte klicke auf den unten stehenden Link, um deine E-Mail-Adresse zu authentifizieren:</p>
+            <p><a href="[activationLink]">Authentifizierungslink</a></p>
+
+            <p>Sobald du auf den Link klickst, wird deine E-Mail-Adresse verifiziert, und du kannst deine Bestellung direkt fortsetzen.
+            Falls du keine erneute Bestellung tätigen möchtest oder diese E-Mail irrtümlich erhalten hast, kannst du sie einfach ignorieren.</p>
+
+            <p>Vielen Dank für deine Unterstützung und dein Vertrauen in unser Unternehmen.
+            Bei Fragen oder Anliegen stehen wir dir gerne zur Verfügung.</p>
+
+            <p>Mit freundlichen Grüßen,</p>
+
+            ]]></de>
+            <en><![CDATA[
+            <h1>Hello,</h1>
+            <p>Thank you for your interest in our products and your previous guest order at the email address [email].</p>
+
+            <p>To ensure that your new order can be processed smoothly, we need a brief confirmation of your email address.
+            Please click the link below to authenticate your email address:</p>
+            <p><a href="[activationLink]">insert authentication link</a>.</p>
+
+            <p>Once you click on the link, your email address will be verified and you can proceed with your order directly.
+            If you don't want to place another order or you received this email by mistake, you can simply ignore it.</p>
+
+            <p>Thank you for your support and confidence in our company.
+            If you have any questions or concerns, please do not hesitate to contact us.</p>
+
+            <p>Sincerely yours,</p>
+            ]]></en>
+        </locale>
+
+        <locale name="message.registration_success">
+            <de><![CDATA[
+            Deine E-Mail-Adresse wurde erfolgreich authentifiziert. Du kannst jetzt mit deiner Bestellung fortfahren.
+            Du wirst in wenigen Sekunden automatisch zur Bestellseite weitergeleitet.
+            ]]></de>
+            <en><![CDATA[
+            Your email address has been successfully authenticated. You can now proceed with your order.
+            You will be automatically redirected to the order page in a few seconds.
+            ]]></en>
+        </locale>
 
     </groups>
 

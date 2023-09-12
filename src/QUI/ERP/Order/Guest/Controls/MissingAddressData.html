@@ -1,0 +1,13 @@
+<h1>Missing address data</h1>
+
+<p>Damit wir dir eine Rechnung stellen können, gebe bitte deine Adressedaten korrekt ein.</p>
+
+<span class="fa fa-spin fa-circle-o-notch customer-data--spinner"></span>
+
+<form class="customer-data" style="display: none">
+    {$CustomerData->create()}
+
+    <input type="hidden" name="order-hash" value="{$orderHash}"/>
+    <input type="hidden" name="order-guest-email" value="{$email}"/>
+    <input type="button" name="customer-data-save" value="Speichern"/>
+</form>

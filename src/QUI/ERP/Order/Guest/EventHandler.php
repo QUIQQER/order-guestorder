@@ -2,6 +2,7 @@
 
 namespace QUI\ERP\Order\Guest;
 
+use MissingAddressData;
 use QUI;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
@@ -22,32 +23,6 @@ use function floatval;
 
 class EventHandler
 {
-    const FLAG = 'guest-order-is-guest';
-    const EMAIL = 'guest-order-email';
-
-    /**
-     * sets the flag, so we know if we are in a guest order
-     *
-     * @return void
-     */
-    public static function setGuestOrderFlag()
-    {
-        if (GuestOrder::isActive()) {
-            QUI::getSession()->set(self::FLAG, 1);
-        }
-    }
-
-    /**
-     * remove the guest order flag
-     * so, we are not in a guest order anymore
-     */
-    public static function removeGuestOrderFlag()
-    {
-        if (GuestOrder::isActive()) {
-            QUI::getSession()->remove(self::FLAG);
-        }
-    }
-
     /**
      * Handles the onRequest event triggered by the Rewrite class
      *
@@ -76,10 +51,9 @@ class EventHandler
             self::onRequestUserCreation();
             return;
         }
-
-
+        
         // invoice creation
-        if ($_REQUEST['t'] === 'invoice' && isset($_REQUEST['o'])) {
+        if ($_REQUEST['t'] === 'invoice') {
             self::onRequestInvoiceCreation();
         }
     }
@@ -100,7 +74,7 @@ class EventHandler
             return null;
         }
 
-        if (!QUI::getSession()->get(self::FLAG)) {
+        if (!QUI::getSession()->get(GuestOrder::FLAG)) {
             return null;
         }
 
@@ -238,15 +212,17 @@ class EventHandler
 
         $CustomerAddress = $Customer->getAddress();
         $SystemUser = QUI::getUsers()->getSystemUser();
-        $email = QUI::getSession()->get(self::EMAIL);
+        $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
         if (empty($_REQUEST['guest-order-create-account'])) {
             // create normal account
             if (QUI::getUsers()->usernameExists($email)) {
                 // user already exists
+                // @deprecated
                 $User = QUI::getUsers()->getUserByName($email);
                 $Order->setCustomer($User);
             } elseif (GuestOrder::isAnonymousOrder()) {
+                // @deprecated
                 $GuestUser->setAttribute('email', $email);
                 $Order->setCustomer($GuestUser);
             } else {
@@ -281,7 +257,7 @@ class EventHandler
         // we have to create an account via frontend users because of the mail auth stuff
         $_POST['registration'] = true;
         $_POST['termsOfUseAccepted'] = true;
-        $_POST['email'] = QUI::getSession()->get(self::EMAIL);
+        $_POST['email'] = QUI::getSession()->get(GuestOrder::EMAIL);
 
         $EmailRegistrar = new QUI\FrontendUsers\Registrars\Email\Registrar();
         $EmailRegistrar->setAttribute('email', $email);
@@ -619,6 +595,9 @@ class EventHandler
             $Registration->register();
 
             $User = $Registration->getRegisteredUser();
+            $Order->setCustomer($User);
+            $Order->save(QUI::getUsers()->getSystemUser());
+
             self::sendNewPasswordMail($User);
 
             self::setSiteContent(
@@ -696,6 +675,7 @@ class EventHandler
      * If an exception occurs during the process, displays an error message.
      *
      * @return void
+     * @throws Exception
      */
     protected static function onRequestInvoiceCreation()
     {
@@ -705,6 +685,7 @@ class EventHandler
         }
 
         $order = $_REQUEST['o'];
+        $user = $_REQUEST['u'];
 
         try {
             $Order = QUI\ERP\Order\Handler::getInstance()->getOrderByHash($order);
@@ -728,19 +709,36 @@ class EventHandler
             }
 
             // wenn nutzer aktiv ist, muss dieser sich anmelden und die address daten eingaben
-            if ($User->isActive()) {
+            if ($User->isActive() && !($User instanceof GuestOrderUser)) {
                 $Login = new QUI\Users\Controls\Login();
 
-                $html = '<div class="messages message-attention">';
-                $html .= 'Bitte melde dich an und gebe deine richtigen Addressdaten ein.';
+                $html = '<div class="content-message-information">';
+                $html .= QUI::getLocale()->get('quiqqer/order-guestorder', 'message.active.account');
                 $html .= '</div>';
                 $html .= $Login->create();
 
                 self::setSiteContent($html);
                 return;
             }
-            // @todo
 
+            // kein nutzer und fehlende address daten
+            // dann müssen die addressdaten eingegeben werden
+            $Customer = $Order->getCustomer();
+            $email = $Customer->getAttribute('email');
+
+            if ($email !== $user) {
+                self::redirectToMainSite();
+                return;
+            }
+
+            // missing address data
+            // guest order
+            $AddressData = new QUI\ERP\Order\Guest\Controls\MissingAddressData([
+                'Order' => $Order
+            ]);
+
+            self::setSiteContent($AddressData->create());
+            return;
         } catch (QUI\Exception $exception) {
             self::showSiteError();
         }
