@@ -2,7 +2,6 @@
 
 namespace QUI\ERP\Order\Guest;
 
-use MissingAddressData;
 use QUI;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
@@ -51,7 +50,7 @@ class EventHandler
             self::onRequestUserCreation();
             return;
         }
-        
+
         // invoice creation
         if ($_REQUEST['t'] === 'invoice') {
             self::onRequestInvoiceCreation();
@@ -370,6 +369,8 @@ class EventHandler
      *
      * @return void
      * @throws Exception
+     *
+     * @todo anonyme bestellung nur für bestimmte kategorien / bzw produkte
      */
     public static function onQuiqqerOrderProcessStepsEnd(
         OrderProcess $OrderProcess,
@@ -572,17 +573,16 @@ class EventHandler
             }
         }
 
+        $Customer = $Order->getCustomer();
+        $email = $Customer->getAttribute('email');
+
+        if ($email !== $user) {
+            self::redirectToMainSite();
+            return;
+        }
+
         if (!$User) {
-            // anonymous order
-            $Customer = $Order->getCustomer();
-            $email = $Customer->getAttribute('email');
-
-            if ($email !== $user) {
-                self::redirectToMainSite();
-                return;
-            }
-
-            // create user
+            // anonymous order - trigger frontend user registration
             $_POST['registration'] = true;
             $_POST['termsOfUseAccepted'] = true;
             $_POST['email'] = $email;
@@ -708,7 +708,7 @@ class EventHandler
                 return;
             }
 
-            // wenn nutzer aktiv ist, muss dieser sich anmelden und die address daten eingaben
+            // wenn nutzer aktiv ist, muss dieser sich anmelden und die address daten eingeben
             if ($User->isActive() && !($User instanceof GuestOrderUser)) {
                 $Login = new QUI\Users\Controls\Login();
 
