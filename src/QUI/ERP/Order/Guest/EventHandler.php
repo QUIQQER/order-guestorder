@@ -17,6 +17,7 @@ use QUI\Smarty\Collector;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+use function count;
 use function date;
 use function floatval;
 
@@ -225,26 +226,10 @@ class EventHandler
                 $GuestUser->setAttribute('email', $email);
                 $Order->setCustomer($GuestUser);
             } else {
-                // create user account -> guest user
-                $User = QUI::getUsers()->createChild($email, $SystemUser);
-                $Address = $User->getStandardAddress();
-                $Address->setAttributes($CustomerAddress->getAttributes());
-                $Address->save($SystemUser);
+                $User = GuestOrder::createGuestAccount($email, $CustomerAddress);
 
-                $User->setAttribute('firstname', $CustomerAddress->getAttribute('firstname'));
-                $User->setAttribute('lastname', $CustomerAddress->getAttribute('lastname'));
-                $User->setAttribute('email', $email);
-
-                try {
-                    if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
-                        $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
-                    }
-                } catch (QUI\Exception $exception) {
-                }
-
-                $User->save($SystemUser);
                 $Order->setCustomer($User);
-                $Order->setInvoiceAddress($Address);
+                $Order->setInvoiceAddress($User->getStandardAddress());
             }
 
             $Order->save($SystemUser);
@@ -254,18 +239,7 @@ class EventHandler
 
         // the user wanted an account after all, and he has checked the checkbox
         // we have to create an account via frontend users because of the mail auth stuff
-        $_POST['registration'] = true;
-        $_POST['termsOfUseAccepted'] = true;
-        $_POST['email'] = QUI::getSession()->get(GuestOrder::EMAIL);
-
-        $EmailRegistrar = new QUI\FrontendUsers\Registrars\Email\Registrar();
-        $EmailRegistrar->setAttribute('email', $email);
-
-        $Registration = new QUI\FrontendUsers\Controls\Registration();
-        $Registration->setAttribute('Registrar', $EmailRegistrar);
-        $Registration->register();
-
-        $User = $Registration->getRegisteredUser();
+        $User = GuestOrder::triggerFrontendUsersRegistration($email);
 
         $Address = $User->getStandardAddress();
         $Address->setAttributes($CustomerAddress->getAttributes());
@@ -274,14 +248,6 @@ class EventHandler
         $User->setAttribute('firstname', $CustomerAddress->getAttribute('firstname'));
         $User->setAttribute('lastname', $CustomerAddress->getAttribute('lastname'));
         $User->setAttribute('email', $email);
-
-        try {
-            if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
-                $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
-            }
-        } catch (QUI\Exception $exception) {
-        }
-
         $User->save($SystemUser);
 
         $Order->setCustomer($User);
@@ -694,54 +660,43 @@ class EventHandler
             return;
         }
 
-        try {
-            $Customer = $Order->getCustomer();
-            $User = QUI::getUsers()->get($Customer->getId());
+        $Customer = $Order->getCustomer();
+        $email = $Customer->getAttribute('email');
 
-            // check address
-            $Address = $Order->getInvoiceAddress();
-            $missing = QUI\ERP\Accounting\Invoice\Utils\Invoice::getMissingAddressData($Address->getAttributes());
-
-            if (!count($missing)) {
-                // alles passt, dann kann eine invoice angelegt werden
-                $Order->createInvoice(QUI::getUserBySession());
-                return;
-            }
-
-            // wenn nutzer aktiv ist, muss dieser sich anmelden und die address daten eingeben
-            if ($User->isActive() && !($User instanceof GuestOrderUser)) {
-                $Login = new QUI\Users\Controls\Login();
-
-                $html = '<div class="content-message-information">';
-                $html .= QUI::getLocale()->get('quiqqer/order-guestorder', 'message.active.account');
-                $html .= '</div>';
-                $html .= $Login->create();
-
-                self::setSiteContent($html);
-                return;
-            }
-
-            // kein nutzer und fehlende address daten
-            // dann müssen die addressdaten eingegeben werden
-            $Customer = $Order->getCustomer();
-            $email = $Customer->getAttribute('email');
-
-            if ($email !== $user) {
-                self::redirectToMainSite();
-                return;
-            }
-
-            // missing address data
-            // guest order
-            $AddressData = new QUI\ERP\Order\Guest\Controls\MissingAddressData([
-                'Order' => $Order
-            ]);
-
-            self::setSiteContent($AddressData->create());
+        if ($email !== $user) {
+            self::redirectToMainSite();
             return;
-        } catch (QUI\Exception $exception) {
-            self::showSiteError();
         }
+
+        // check address
+        $Address = $Order->getInvoiceAddress();
+        $missing = QUI\ERP\Accounting\Invoice\Utils\Invoice::getMissingAddressData($Address->getAttributes());
+        $User = null;
+
+        try {
+            $User = QUI::getUsers()->get($Customer->getId());
+        } catch (QUI\Exception $exception) {
+        }
+
+        if (!count($missing)) {
+            if ($User) {
+                $Order->setCustomer($User);
+                $Order->setInvoiceAddress($Address);
+                $Order->save(QUI::getUserBySession());
+            }
+
+            // alles passt, dann kann eine invoice angelegt werden
+            $Order->createInvoice(QUI::getUserBySession());
+            return;
+        }
+
+        // missing address data
+        // guest order
+        $AddressData = new QUI\ERP\Order\Guest\Controls\MissingAddressData([
+            'Order' => $Order
+        ]);
+
+        self::setSiteContent($AddressData->create());
     }
 
     /**

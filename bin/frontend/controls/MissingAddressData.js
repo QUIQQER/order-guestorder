@@ -73,12 +73,14 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/MissingAddressDat
         submit: function() {
             const Form = this.getElm().getElement('form');
             const formData = QUIFormUtils.getFormData(Form);
-            console.log(formData);
+
             this.Loader.show();
 
-            QUIAjax.post('package_quiqqer_order-guestorder_ajax_frontend_setCustomerData', () => {
-                this.Loader.hide();
+            QUIAjax.post('package_quiqqer_order-guestorder_ajax_frontend_submitCustomerData', () => {
 
+                // @todo message
+
+                this.Loader.hide();
             }, {
                 'package': 'quiqqer/order-guestorder',
                 orderHash: formData['order-hash'],

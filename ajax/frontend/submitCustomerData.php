@@ -5,11 +5,12 @@
  */
 
 use QUI\ERP\Accounting\Invoice\Utils\Invoice as InvoiceUtils;
+use QUI\ERP\Order\Guest\GuestOrder;
 use QUI\ERP\Order\Guest\GuestOrderUser;
 use QUI\ERP\Order\Handler;
 
 QUI::$Ajax->registerFunction(
-    'package_quiqqer_order-guestorder_ajax_frontend_setCustomerData',
+    'package_quiqqer_order-guestorder_ajax_frontend_submitCustomerData',
     function ($orderHash, $data) {
         $Order = Handler::getInstance()->getOrderByHash($orderHash);
         $data = json_decode($data, true);
@@ -86,8 +87,30 @@ QUI::$Ajax->registerFunction(
             );
         }
 
+        // all is fine, we can create the users
+        $email = $Customer->getAttribute('email');
+
+        try {
+            $User = QUI::getUsers()->get($Customer->getId());
+
+            if (!$User->isActive()) {
+                $User = GuestOrder::triggerFrontendUsersRegistration($email);
+            }
+        } catch (QUI\Exception $exception) {
+            $User = GuestOrder::createGuestAccount($email, $Address);
+        }
+
+        $Order->setCustomer($User);
         $Order->setInvoiceAddress($Address);
         $Order->save(QUI::getUsers()->getSystemUser());
+
+        if ($Order->hasInvoice()) {
+            $Invoice = $Order->getInvoice();
+        } else {
+            $Invoice = $Order->createInvoice(QUI::getUsers()->getSystemUser());
+        }
+
+        $Invoice->sendTo($email);
     },
     ['orderHash', 'data']
 );
