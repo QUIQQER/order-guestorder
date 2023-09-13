@@ -104,13 +104,21 @@ QUI::$Ajax->registerFunction(
         $Order->setInvoiceAddress($Address);
         $Order->save(QUI::getUsers()->getSystemUser());
 
-        if ($Order->hasInvoice()) {
-            $Invoice = $Order->getInvoice();
-        } else {
-            $Invoice = $Order->createInvoice(QUI::getUsers()->getSystemUser());
-        }
 
-        $Invoice->sendTo($email);
+        $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'invoicing_for_guests'
+        );
+
+        if ($guestInvoicing) {
+            if ($Order->hasInvoice()) {
+                $Invoice = $Order->getInvoice();
+            } else {
+                $Invoice = $Order->createInvoice(QUI::getUsers()->getSystemUser());
+            }
+
+            $Invoice->sendTo($email);
+        }
     },
     ['orderHash', 'data']
 );

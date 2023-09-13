@@ -11,6 +11,10 @@
                 <conf name="anonymous_max_sum">
                     <type><![CDATA[string]]></type>
                 </conf>
+                <conf name="invoicing_for_guests">
+                    <type><![CDATA[bool]]></type>
+                    <defaultvalue>1></defaultvalue>
+                </conf>
             </section>
         </config>
 
@@ -63,6 +67,16 @@
                             <description>
                                 <locale group="quiqqer/order-guestorder"
                                         var="settings.guest.anonymous_max_sum.description"/>
+                            </description>
+                        </input>
+
+                        <input conf="guestorder.invoicing_for_guests" type="checkbox">
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.invoicing_for_guests"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.invoicing_for_guests.description"/>
                             </description>
                         </input>
                     </settings>

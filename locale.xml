@@ -79,6 +79,21 @@
             ]]></en>
         </locale>
 
+        <locale name="settings.guest.invoicing_for_guests">
+            <de><![CDATA[Rechnungserstellung für Gäste]]></de>
+            <en><![CDATA[Invoicing for guests]]></en>
+        </locale>
+        <locale name="settings.guest.invoicing_for_guests.description">
+            <de><![CDATA[
+            Wenn diese Option aktiviert ist, haben Gäste oder anonyme Besteller die Möglichkeit, eine Rechnung für ihre Bestellung anzufordern.
+            In diesem Fall werden Benutzerkonten erstellt oder aktiviert, um die Rechnungsausstellung für den Benutzer zu ermöglichen.
+            ]]></de>
+            <en><![CDATA[
+            If this option is enabled, guests or anonymous orderers have the possibility,
+            request an invoice for their order. In this case, user accounts are created or activated, to enable invoicing for the user.
+            ]]></en>
+        </locale>
+
         <locale name="mail.link.create.account" html="true">
             <de><![CDATA[
             Wir möchten dich darauf hinweisen, dass die Registrierung eines Benutzerkontos bei uns nach wie vor möglich ist

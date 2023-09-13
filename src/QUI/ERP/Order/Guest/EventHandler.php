@@ -476,7 +476,16 @@ class EventHandler
         $invoiceLink = GuestOrder::getInvoiceCreationLink($Order);
         $createAccountLink = GuestOrder::getAccountCreationLink($Order);
 
-        if (GuestOrder::isAnonymousOrder() && QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
+        $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'invoicing_for_guests'
+        );
+
+        if (
+            $guestInvoicing
+            && GuestOrder::isAnonymousOrder()
+            && QUI::getPackageManager()->isInstalled('quiqqer/invoice')
+        ) {
             // Anonyme Bestellung: Rechnungserzeugung oder Kundenkonto anlegen
             $html .= QUI::getLocale()->get('quiqqer/order-guestorder', 'mail.link.create.invoice', [
                 'link' => $invoiceLink
