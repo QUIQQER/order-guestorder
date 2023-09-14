@@ -10,8 +10,6 @@ use QUI\ERP\Order\Settings;
 use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\Exception;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
-use QUI\Interfaces\Users\User;
-use QUI\Mail\Mailer;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -573,7 +571,7 @@ class EventHandler
             $Order->setCustomer($User);
             $Order->save(QUI::getUsers()->getSystemUser());
 
-            self::sendNewPasswordMail($User);
+            GuestOrder::sendNewPasswordMail($User);
 
             self::setSiteContent(
                 '<div class="messages message-success">' .
@@ -589,55 +587,13 @@ class EventHandler
             return;
         }
 
-        self::sendNewPasswordMail($User);
+        GuestOrder::sendNewPasswordMail($User);
 
         self::setSiteContent(
             '<div class="messages message-success">' .
             QUI::getLocale()->get('quiqqer/order-guestorder', 'message.registration.password.info') .
             '</div>'
         );
-    }
-
-    /**
-     * Sends a new password email to the specified user
-     *
-     * @param User $User The user object to send the email to
-     *
-     * @return void
-     * @throws Exception
-     * @throws \PHPMailer\PHPMailer\Exception
-     */
-    protected static function sendNewPasswordMail(QUI\Interfaces\Users\User $User)
-    {
-        // password mail and activation mail
-        $newPassword = QUI\Security\Password::generateRandom();
-
-        $User->setPassword($newPassword, QUI::getUsers()->getSystemUser());
-        $User->setAttribute('quiqqer.set.new.password', true);
-        $User->save(QUI::getUsers()->getSystemUser());
-
-        if (!$User->isActive()) {
-            $User->activate(false, QUI::getUsers()->getSystemUser());
-        }
-
-        // send mail
-        $email = $User->getAttribute('email');
-
-        $Mailer = new Mailer();
-        $Mailer->addRecipient($email);
-
-        $Mailer->setSubject(
-            QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.subject')
-        );
-
-        $body = QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body', [
-            'name' => $User->getName(),
-            'password' => $newPassword,
-            'forceNewMsg' => QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body.force_new')
-        ]);
-
-        $Mailer->setBody($body);
-        $Mailer->send();
     }
 
     /**

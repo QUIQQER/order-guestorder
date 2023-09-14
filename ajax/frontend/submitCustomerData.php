@@ -4,10 +4,13 @@
  * This file contains package_quiqqer_order-guestorder_ajax_frontend_setCustomerData
  */
 
+use QUI\ERP\Accounting\Invoice\Invoice;
+use QUI\ERP\Accounting\Invoice\InvoiceTemporary;
 use QUI\ERP\Accounting\Invoice\Utils\Invoice as InvoiceUtils;
 use QUI\ERP\Order\Guest\GuestOrder;
 use QUI\ERP\Order\Guest\GuestOrderUser;
 use QUI\ERP\Order\Handler;
+use QUI\System\Log;
 
 QUI::$Ajax->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_submitCustomerData',
@@ -18,17 +21,23 @@ QUI::$Ajax->registerFunction(
         $Guest = new GuestOrderUser();
 
         if (empty($data['order-guest-email'])) {
-            throw new QUI\Exception('Missing E-Mail');
+            throw new QUI\Exception(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+            );
         }
 
         // this is only for anonymous orders
         if ($Customer->getId() !== $Guest->getId()) {
-            return;
+            throw new QUI\Exception(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+            );
         }
 
         // check customer mail
         if ($Customer->getAttribute('email') !== $data['order-guest-email']) {
-            throw new QUI\Exception('You are not allowed to edit this order');
+            throw new QUI\Exception(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+            );
         }
 
         // set address data
@@ -89,15 +98,32 @@ QUI::$Ajax->registerFunction(
 
         // all is fine, we can create the users
         $email = $Customer->getAttribute('email');
+        $message = '<p>' . QUI::getLocale()->get(
+                'quiqqer/order-guestorder',
+                'message.guest.sendInvoice.thanks'
+            ) . '</p>';
 
         try {
             $User = QUI::getUsers()->get($Customer->getId());
 
-            if (!$User->isActive()) {
+            if ($User instanceof GuestOrderUser && !empty($data['guest-order-create-account'])) {
                 $User = GuestOrder::triggerFrontendUsersRegistration($email);
+                $message .= '<p>' . QUI::getLocale()->get(
+                        'quiqqer/order-guestorder',
+                        'message.guest.sendInvoice.accountCreation'
+                    ) . '</p>';
+
+                // frontend users don't set a password
+                GuestOrder::sendNewPasswordMail($User);
+            } else {
+                $User = GuestOrder::createGuestAccount($email, $Address);
             }
         } catch (QUI\Exception $exception) {
-            $User = GuestOrder::createGuestAccount($email, $Address);
+            Log::addNotice($exception->getMessage());
+
+            throw new QUI\Exception(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+            );
         }
 
         $Order->setCustomer($User);
@@ -105,10 +131,9 @@ QUI::$Ajax->registerFunction(
         $Order->save(QUI::getUsers()->getSystemUser());
 
 
-        $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
-            'guestorder',
-            'invoicing_for_guests'
-        );
+        $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')
+            ->getConfig()
+            ->getValue('guestorder', 'invoicing_for_guests');
 
         if ($guestInvoicing) {
             if ($Order->hasInvoice()) {
@@ -117,8 +142,21 @@ QUI::$Ajax->registerFunction(
                 $Invoice = $Order->createInvoice(QUI::getUsers()->getSystemUser());
             }
 
-            $Invoice->sendTo($email);
+            if ($Invoice instanceof InvoiceTemporary) {
+                $Invoice = $Invoice->post(QUI::getUsers()->getSystemUser());
+            }
+
+            if ($Invoice instanceof Invoice) {
+                $Invoice->sendTo($email);
+            }
+
+            $message .= '<p>' . QUI::getLocale()->get(
+                    'quiqqer/order-guestorder',
+                    'message.guest.sendInvoice.invoiceSuccessful'
+                ) . '</p>';
         }
+
+        return $message;
     },
     ['orderHash', 'data']
 );

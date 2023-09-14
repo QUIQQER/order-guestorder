@@ -5,6 +5,7 @@ namespace QUI\ERP\Order\Guest;
 use Exception;
 use QUI;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
+use QUI\Mail\Mailer;
 use QUI\Projects\Project;
 use QUI\System\Log;
 use QUI\Users\Address;
@@ -250,4 +251,47 @@ class GuestOrder
 
         return $User;
     }
+
+    /**
+     * Sends a new password email to the specified user
+     *
+     * @param \QUI\Interfaces\Users\User $User The user object to send the email to
+     *
+     * @return void
+     * @throws \QUI\Exception
+     * @throws \PHPMailer\PHPMailer\Exception
+     */
+    public static function sendNewPasswordMail(QUI\Interfaces\Users\User $User)
+    {
+        // password mail and activation mail
+        $newPassword = QUI\Security\Password::generateRandom();
+
+        $User->setPassword($newPassword, QUI::getUsers()->getSystemUser());
+        $User->setAttribute('quiqqer.set.new.password', true);
+        $User->save(QUI::getUsers()->getSystemUser());
+
+        if (!$User->isActive()) {
+            $User->activate(false, QUI::getUsers()->getSystemUser());
+        }
+
+        // send mail
+        $email = $User->getAttribute('email');
+
+        $Mailer = new Mailer();
+        $Mailer->addRecipient($email);
+
+        $Mailer->setSubject(
+            QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.subject')
+        );
+
+        $body = QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body', [
+            'name' => $User->getName(),
+            'password' => $newPassword,
+            'forceNewMsg' => QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body.force_new')
+        ]);
+
+        $Mailer->setBody($body);
+        $Mailer->send();
+    }
+
 }

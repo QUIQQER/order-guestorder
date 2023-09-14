@@ -43,12 +43,16 @@ class MissingAddressData extends QUI\Control
             'Order' => $Order,
             'businessTypeIsChangeable' => false
         ]);
+        
+        $Customer = $Order->getCustomer();
+        $Guest = new QUI\ERP\Order\Guest\GuestOrderUser();
 
         $Engine->assign([
             'orderHash' => $Order->getHash(),
             'email' => $Order->getCustomer()->getAttribute('email'),
             'missing' => $missing,
-            'CustomerData' => $CustomerData
+            'CustomerData' => $CustomerData,
+            'showAccountCreation' => $Customer->getId() === $Guest->getId()
         ]);
 
         return $Engine->fetch(dirname(__FILE__) . '/MissingAddressData.html');

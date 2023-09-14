@@ -256,6 +256,41 @@
             You will be automatically redirected to the order page in a few seconds.
             ]]></en>
         </locale>
+
+        <locale name="message.guest.sendInvoice.thanks">
+            <de><![CDATA[Vielen Dank! Deine Daten wurden erfolgreich gespeichert.]]></de>
+            <en><![CDATA[Thank you very much! Your data has been successfully saved.]]></en>
+        </locale>
+        <locale name="message.guest.sendInvoice.invoiceSuccessful">
+            <de><![CDATA[
+            Eine Rechnung wurde an deine E-Mail-Adresse gesendet. Bitte überprüfe dein Postfach.
+            ]]></de>
+            <en><![CDATA[
+            An invoice has been sent to your email address. Please check your mailbox.
+            ]]></en>
+        </locale>
+        <locale name="message.guest.sendInvoice.accountCreation">
+            <de><![CDATA[
+            Herzlichen Dank für die Erstellung deines Accounts in unserem Shop! Wir haben dir eine E-Mail gesendet,
+            damit du deine Account-Registrierung abschließen kannst.
+            Bitte überprüfe dein Postfach, um den Prozess abzuschließen
+            ]]></de>
+            <en><![CDATA[
+            Thank you for creating your account in our store! We have sent you an e-mail so that you can complete your account registration.
+            Please check your inbox to complete the process.
+            ]]></en>
+        </locale>
+
+        <locale name="message.guest.sendInvoice.error">
+            <de><![CDATA[
+            Leider ist ein Fehler aufgetreten und die Aktion konnte nicht durchgeführt werden.
+            Wenden Sie sich bitte an den Shopbetreiber
+            ]]></de>
+            <en><![CDATA[
+            Unfortunately, an error occurred and the action could not be executed.
+            Please contact the store operator
+            ]]></en>
+        </locale>
     </groups>
 
     <groups name="quiqqer/order-guestorder" datatype="php">

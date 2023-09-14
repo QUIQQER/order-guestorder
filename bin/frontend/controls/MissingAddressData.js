@@ -57,7 +57,7 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/MissingAddressDat
 
                         (() => {
                             Container.setStyle('opacity', 0);
-                            Container.setStyle('display', 'inline');
+                            Container.setStyle('display', 'inline-block');
 
                             this.getElm().getElement('.customer-data--spinner').destroy();
 
@@ -74,11 +74,32 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/MissingAddressDat
             const Form = this.getElm().getElement('form');
             const formData = QUIFormUtils.getFormData(Form);
 
+            const requiredFields = Form.getElements('[required]');
+            let i, len, Node;
+
+            for (i = 0, len = requiredFields.length; i < len; i++) {
+                Node = requiredFields[i];
+
+                if ('reportValidity' in Node) {
+                    Node.reportValidity();
+                }
+
+                if ('checkValidity' in Node) {
+                    if (!Node.checkValidity()) {
+                        return;
+                    }
+                }
+            }
+
             this.Loader.show();
 
-            QUIAjax.post('package_quiqqer_order-guestorder_ajax_frontend_submitCustomerData', () => {
+            QUIAjax.post('package_quiqqer_order-guestorder_ajax_frontend_submitCustomerData', (message) => {
+                this.getElm().set('html', '');
 
-                // @todo message
+                new Element('div', {
+                    'class': 'content-message-success',
+                    html: message
+                }).inject(this.getElm());
 
                 this.Loader.hide();
             }, {
@@ -87,6 +108,14 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/MissingAddressDat
                 data: JSON.encode(formData),
                 onError: (err) => {
                     console.error(err.getMessage());
+
+                    this.getElm().set('html', '');
+
+                    new Element('div', {
+                        'class': 'content-message-error',
+                        html: err.getMessage()
+                    }).inject(this.getElm());
+
                     this.Loader.hide();
                 }
             });
