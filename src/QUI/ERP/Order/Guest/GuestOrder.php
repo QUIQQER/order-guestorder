@@ -171,7 +171,7 @@ class GuestOrder
                 ),
                 QUI::getLocale()->get('quiqqer/order-guestorder', 'mail.auth.body', $localeParams)
             );
-        } catch (QUI\Exception|Exception $e) {
+        } catch (Exception $e) {
             QUI\System\Log::addError($e->getMessage());
             return;
         }
@@ -293,5 +293,4 @@ class GuestOrder
         $Mailer->setBody($body);
         $Mailer->send();
     }
-
 }

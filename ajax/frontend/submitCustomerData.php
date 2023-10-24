@@ -98,20 +98,18 @@ QUI::$Ajax->registerFunction(
 
         // all is fine, we can create the users
         $email = $Customer->getAttribute('email');
-        $message = '<p>' . QUI::getLocale()->get(
-                'quiqqer/order-guestorder',
-                'message.guest.sendInvoice.thanks'
-            ) . '</p>';
+        $message = '<p>' .
+            QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.thanks') .
+            '</p>';
 
         try {
             $User = QUI::getUsers()->get($Customer->getId());
 
             if ($User instanceof GuestOrderUser && !empty($data['guest-order-create-account'])) {
                 $User = GuestOrder::triggerFrontendUsersRegistration($email);
-                $message .= '<p>' . QUI::getLocale()->get(
-                        'quiqqer/order-guestorder',
-                        'message.guest.sendInvoice.accountCreation'
-                    ) . '</p>';
+                $message .= '<p>' .
+                    QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.accountCreation') .
+                    '</p>';
 
                 // frontend users don't set a password
                 GuestOrder::sendNewPasswordMail($User);
@@ -150,10 +148,9 @@ QUI::$Ajax->registerFunction(
                 $Invoice->sendTo($email);
             }
 
-            $message .= '<p>' . QUI::getLocale()->get(
-                    'quiqqer/order-guestorder',
-                    'message.guest.sendInvoice.invoiceSuccessful'
-                ) . '</p>';
+            $message .= '<p>' .
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.invoiceSuccessful') .
+                '</p>';
         }
 
         return $message;
