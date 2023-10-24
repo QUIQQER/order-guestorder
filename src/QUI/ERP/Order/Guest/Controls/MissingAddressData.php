@@ -43,7 +43,7 @@ class MissingAddressData extends QUI\Control
             'Order' => $Order,
             'businessTypeIsChangeable' => false
         ]);
-        
+
         $Customer = $Order->getCustomer();
         $Guest = new QUI\ERP\Order\Guest\GuestOrderUser();
 
