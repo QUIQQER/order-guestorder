@@ -135,7 +135,20 @@ define('package/quiqqer/order-guestorder/bin/frontend/controls/GuestOrderButton'
             const ProcessNode = this.getElm().getParent(
                 '[data-qui="package/quiqqer/order/bin/frontend/controls/OrderProcess"]'
             );
-            const OrderProcess = QUI.Controls.getById(ProcessNode.get('data-quiid'));
+            const SimpleCheckout = this.getElm().getParent(
+                '[data-qui="package/quiqqer/order-simple-checkout/bin/frontend/controls/SimpleCheckout"]'
+            );
+
+            let OrderProcess;
+
+            if (ProcessNode) {
+                OrderProcess = QUI.Controls.getById(ProcessNode.get('data-quiid'));
+            }
+
+            if (SimpleCheckout) {
+                OrderProcess = QUI.Controls.getById(SimpleCheckout.get('data-quiid'));
+            }
+
 
             if (Email.value === '') {
                 return;
