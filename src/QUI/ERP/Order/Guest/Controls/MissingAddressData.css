@@ -1,0 +1,46 @@
+.guest-order-address {
+    margin: 0 auto;
+    max-width: 700px;
+}
+
+.guest-order-address form {
+    width: 100%;
+}
+
+.guest-order-address .quiqqer-order-customerData-comment {
+    display: none;
+}
+
+.guest-order-address .quiqqer-order-customerData header {
+    display: none;
+}
+
+.guest-order-address .quiqqer-order-customerData-container {
+    margin-bottom: 20px;
+}
+
+.guest-order-address .quiqqer-order-customerData-display {
+    display: none !important;
+}
+
+.guest-order-address .quiqqer-order-customerData-edit {
+    display: inline !important;
+    margin-top: 0;
+}
+
+.guest-order-address .quiqqer-order-customerData-container .quiqqer-order-customerData {
+    margin-right: 0;
+    max-width: 100%;
+    width: 100%;
+}
+
+.quiqqer-order-step-checkout-notice {
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.guest-order-address [name="customer-data-save"] {
+    display: block;
+    margin: 0 auto;
+    width: 200px;
+}

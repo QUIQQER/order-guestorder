@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiqqer>
+    <settings name="ERP">
+
+        <config>
+            <section name="guestorder">
+                <conf name="type">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>no</defaultvalue>
+                </conf>
+                <conf name="anonymous_max_sum">
+                    <type><![CDATA[string]]></type>
+                </conf>
+                <conf name="invoicing_for_guests">
+                    <type><![CDATA[bool]]></type>
+                    <defaultvalue>1></defaultvalue>
+                </conf>
+            </section>
+        </config>
+
+        <window name="ERP">
+            <title>
+                <locale group="quiqqer/erp" var="window.erp.title"/>
+            </title>
+            <params>
+                <icon>fa fa-sun-o</icon>
+            </params>
+
+            <categories>
+                <category name="order" index="2">
+                    <text>
+                        <locale group="quiqqer/order" var="window.erp.order.title"/>
+                    </text>
+                    <icon>fa fa-shopping-basket</icon>
+
+                    <settings title="guestOrder" name="guestOrder">
+                        <title>
+                            <locale group="quiqqer/order-guestorder" var="settings.title"/>
+                        </title>
+
+                        <select conf="guestorder.type"
+                                data-qui="package/quiqqer/order-guestorder/bin/backend/controls/Settings"
+                        >
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.description"/>
+                            </description>
+
+                            <option value="no">
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.no"/>
+                            </option>
+                            <option value="noRegistration">
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.order.type.noRegistration"/>
+                            </option>
+                            <option value="anonymous">
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.anonymous"/>
+                            </option>
+                        </select>
+
+                        <input conf="guestorder.anonymous_max_sum" placeholder="500.00">
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.anonymous_max_sum"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.anonymous_max_sum.description"/>
+                            </description>
+                        </input>
+
+                        <input conf="guestorder.invoicing_for_guests" type="checkbox">
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.invoicing_for_guests"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.invoicing_for_guests.description"/>
+                            </description>
+                        </input>
+                    </settings>
+
+                </category>
+            </categories>
+        </window>
+    </settings>
+</quiqqer>

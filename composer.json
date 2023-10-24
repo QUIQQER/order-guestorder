@@ -1,7 +1,7 @@
 {
   "name": "quiqqer\/order-guestorder",
   "type": "quiqqer-module",
-  "description": "QUIQQER ERP Order Guest",
+  "description": "Adds guest ordering functionality to QUIQQER and ecoyn",
   "license": [
     "GPL-3.0+",
     "PCSG QEL-1.0"

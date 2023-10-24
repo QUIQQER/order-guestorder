@@ -1,0 +1,34 @@
+<div class="quiqqer-order-ordering-nobody-guestOrder">
+    <form name="" method="POST">
+        <h2>{locale group="quiqqer/order-guestorder" var="control.guestOrderButton.header"}</h2>
+
+        <div class="step" style="display: none">
+            <button name="guest-order">
+                {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.button"}
+            </button>
+        </div>
+
+        <div class="step quiqqer-order-ordering-nobody-guestOrder-email" style="display: none">
+            {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.info"}
+
+            <label>
+                <span>{locale group="quiqqer/quiqqer" var="email"}</span>
+                <input type="email" name="guest-order-enter-email"/>
+            </label>
+
+            <button name="guest-order-enter-emailSubmit">
+                {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.next"}
+            </button>
+        </div>
+
+        <div class="step quiqqer-order-ordering-nobody-guestOrder-terms" style="display: none">
+            <span class="quiqqer-fu-registrationSignUp-terms-text">
+                {$termsPrivacyMessage}
+            </span>
+
+            <button name="guest-order-enter-termsSubmit">
+                {locale group="quiqqer/order-guestorder" var="control.guestOrderButton.next"}
+            </button>
+        </div>
+    </form>
+</div>

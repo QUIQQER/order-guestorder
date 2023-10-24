@@ -1,0 +1,21 @@
+<h1>{locale group="quiqqer/order-guestorder" var="control.missingAddressData.header"}</h1>
+
+{locale group="quiqqer/order-guestorder" var="control.missingAddressData.text"}
+<span class="fa fa-spin fa-circle-o-notch customer-data--spinner"></span>
+
+<form class="customer-data" style="display: none">
+    {$CustomerData->create()}
+
+    {if $showAccountCreation}
+    <div class="quiqqer-order-step-checkout-notice">
+        <label>
+            <input type="checkbox" name="guest-order-create-account"/>
+            {locale group="quiqqer/order-guestorder" var="order.create.account.message"}
+        </label>
+    </div>
+    {/if}
+
+    <input type="hidden" name="order-hash" value="{$orderHash}"/>
+    <input type="hidden" name="order-guest-email" value="{$email}"/>
+    <input type="button" name="customer-data-save" value="Speichern"/>
+</form>

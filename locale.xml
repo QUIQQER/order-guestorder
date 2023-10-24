@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locales>
+    <groups name="quiqqer/order-guestorder" datatype="php,js">
+        <locale name="package.title">
+            <de><![CDATA[ecoyn - Gastbestellungen]]></de>
+            <en><![CDATA[ecoyn - guest order]]></en>
+        </locale>
+
+        <locale name="package.description">
+            <de><![CDATA[Fügt QUIQQER und ecoyn eine Gastbestellfunktion hinzu.]]></de>
+            <en><![CDATA[Adds guest ordering functionality to QUIQQER and ecoyn.]]></en>
+        </locale>
+        <locale name="order.create.account.message">
+            <de><![CDATA[
+            <span>Kundenkonto anlegen: Ja, ich möchte von den Vorteilen eines Kundenkontos profitieren.
+            Bequemes Bestellen, schnelle Auftragsverfolgung und exklusive Angebote.</span>
+            ]]></de>
+            <en><![CDATA[
+            <span>Create a customer account: Yes, I would like to benefit from the advantages of a customer account.
+            Convenient ordering, fast order tracking and exclusive offers.</span>
+            ]]></en>
+        </locale>
+
+        <locale name="guest.username">
+            <de><![CDATA[Gast]]></de>
+            <en><![CDATA[Guest]]></en>
+        </locale>
+        <locale name="mail.is.already.registered">
+            <de><![CDATA[
+            Diese E-Mail ist in unserem System schon regisriert. Bitte melde dich mit deinen Accountdaten an.
+            ]]></de>
+            <en><![CDATA[
+            This email is already registered in our system. Please log in with your account data.
+            ]]></en>
+        </locale>
+
+
+        <locale name="settings.title">
+            <de><![CDATA[Gastbestellung]]></de>
+            <en><![CDATA[Guest order]]></en>
+        </locale>
+        <locale name="settings.guest.order.type">
+            <de><![CDATA[Art der erlaubten Gastbestellung]]></de>
+            <en><![CDATA[Type of the guest order]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.description" htm="true">
+            <de><![CDATA[
+            <p><b>Gastbestellung ohne Registrierung:</b> Kunden können ohne vorherige Anmeldung bestellen, müssen jedoch ihre Adresse angeben.</p>
+            <p><b>Anonyme Bestellung:</b> Kunden können ohne Registrierung bestellen, ohne ihre Adresse preiszugeben.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p><b>Guest order without registration:</b> Customers can order without prior registration, but must provide their address.</p>
+            <p><b>Anonymous order:</b> Customers can order without registering, without revealing their address.</p>
+            ]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.no">
+            <de><![CDATA[Keine Gastbestellung zulassen]]></de>
+            <en><![CDATA[Do not allow guest order]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.noRegistration">
+            <de><![CDATA[Gastbestellung ohne Registrierung zulassen]]></de>
+            <en><![CDATA[Allow guest order without registration]]></en>
+        </locale>
+        <locale name="settings.guest.order.type.anonymous">
+            <de><![CDATA[Anonyme Bestellung zulassen]]></de>
+            <en><![CDATA[Allow anonymous order]]></en>
+        </locale>
+
+        <locale name="settings.guest.anonymous_max_sum">
+            <de><![CDATA[Maximal Summe]]></de>
+            <en><![CDATA[Maximum total]]></en>
+        </locale>
+        <locale name="settings.guest.anonymous_max_sum.description">
+            <de><![CDATA[
+            Dies bestimmt, bis zu welcher Summe eine Anonyme Bestellung erlaubt ist, ohne das der Kunde eine Adresse eintragen muss.
+            ]]></de>
+            <en><![CDATA[
+            This determines up to what amount an anonymous order is allowed without the customer having to enter an address.
+            ]]></en>
+        </locale>
+
+        <locale name="settings.guest.invoicing_for_guests">
+            <de><![CDATA[Rechnungserstellung für Gäste]]></de>
+            <en><![CDATA[Invoicing for guests]]></en>
+        </locale>
+        <locale name="settings.guest.invoicing_for_guests.description">
+            <de><![CDATA[
+            Wenn diese Option aktiviert ist, haben Gäste oder anonyme Besteller die Möglichkeit, eine Rechnung für ihre Bestellung anzufordern.
+            In diesem Fall werden Benutzerkonten erstellt oder aktiviert, um die Rechnungsausstellung für den Benutzer zu ermöglichen.
+            ]]></de>
+            <en><![CDATA[
+            If this option is enabled, guests or anonymous orderers have the possibility,
+            request an invoice for their order. In this case, user accounts are created or activated, to enable invoicing for the user.
+            ]]></en>
+        </locale>
+
+        <locale name="mail.link.create.account" html="true">
+            <de><![CDATA[
+            Wir möchten dich darauf hinweisen, dass die Registrierung eines Benutzerkontos bei uns nach wie vor möglich ist
+            und mit mehreren Vorteilen verbunden ist. <a href="[link]">Klicke hier um ein neues Benutzerkonto mit
+            dieser E-Mail und dieser Bestellung zu verknüpfen.</a>
+            ]]></de>
+            <en><![CDATA[
+            We would like to inform you that registering a user account with us is still possible and comes with several benefits.
+            <a href="[link]">Click here to link a new account to this email and order.</a>
+            ]]></en>
+        </locale>
+        <locale name="mail.link.create.invoice" html="true">
+            <de><![CDATA[
+            Solltest du doch eine Rechnung für deine aktuelle Bestellung benötigen,
+            steht dir <a href="[link]">hier die Möglichkeit zur Verfügung</a> diese ganz unkompliziert zu erstellen.
+            ]]></de>
+            <en><![CDATA[
+            If you do need an invoice for your current order, <a href="[link]">you can easily create one here.</a>
+            ]]></en>
+        </locale>
+        <locale name="message.registration.password.info" html="true">
+            <de><![CDATA[
+            Danke, dass du dich dazu entschieden hast, dich bei unserem Shop zu registrieren.
+            Damit du dich einloggen kannst, haben wir dir ein Passwort an deine E-Mail-Adresse gesendet.
+            Bei deinem ersten Login wirst du gebeten, dein Passwort zu aktualisieren.
+            ]]></de>
+            <en><![CDATA[
+            Thank you for choosing to register with our store.
+            In order for you to log in, we have sent you a password to your email address.
+            When you log in for the first time, you will be asked to update your password.
+            ]]></en>
+        </locale>
+        <locale name="site.message.error" html="true">
+            <de><![CDATA[
+            <h1>Es tut uns leid, aber ein Fehler ist aufgetreten.</h1>
+            <p>Leider ist bei Ihrer Nutzung unserer Website/Anwendung ein unerwarteter Fehler aufgetreten.
+            Wir entschuldigen uns für die Unannehmlichkeiten. Bitte kontaktieren Sie uns, damit wir Ihnen weiterhelfen können.</p>
+            <p>Vielen Dank für Ihr Verständnis.</p>
+            ]]></de>
+            <en><![CDATA[
+            <h1>We are sorry, but an error has occurred</h1>.
+            <p>Unfortunately, an unexpected error occurred while you were using our website/app.
+            We apologize for the inconvenience. Please contact us so that we can assist you further.</p>
+            <p>Thank you for your understanding.</p>
+            ]]></en>
+        </locale>
+
+        <locale name="control.registration.terms_of_use.info" html="true">
+            <de><![CDATA[
+            Durch das Fortfahren mit der Bestellung versichere ich die Nutzungsbedingungen und/oder Datenschutzbestimmungen
+            gelesen zu haben und erkläre mich mit diesen einverstanden.
+            ]]></de>
+            <en><![CDATA[
+            By proceeding with the order I confirm that I have read and agree to the Terms of Use and/or Privacy Policy.
+            ]]></en>
+        </locale>
+        <locale name="control.sign.up.terms_of_use_and_privacy_policy.label" html="true">
+            <de><![CDATA[
+            Durch das Fortfahren mit der Bestellung versichere ich die
+            <a href="[termsOfUseUrl]">[termsOfUseSiteTitle]</a> und
+            <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a>
+            gelesen zu haben und erkläre mich mit diesen einverstanden.
+            ]]></de>
+            <en><![CDATA[
+            By proceeding with the order I confirm that I have read and agree to the
+            <a href="[termsOfUseUrl]">[termsOfUseSiteTitle]</a> and
+            <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a>.
+            ]]></en>
+        </locale>
+        <locale name="control.sign.up.terms_of_use.label" html="true">
+            <de><![CDATA[
+            Durch das Fortfahren mit der Bestellung versichere ich die
+            <a href="[termsOfUseUrl]">[termsOfUseSiteTitle]</a> gelesen zu haben
+            und erkläre mich mit diesen einverstanden.
+            ]]></de>
+            <en><![CDATA[
+            By proceeding with the order I confirm that I have read and agree to the
+            <a href="[termsOfUseUrl]">[termsOfUseSiteTitle]</a>.
+            ]]></en>
+        </locale>
+        <locale name="control.sign.up.privacy_policy.label" html="true">
+            <de><![CDATA[
+            Durch das Fortfahren mit der Bestellung versichere ich die
+            <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a>
+            gelesen zu haben und erkläre mich mit diesen einverstanden.
+            ]]></de>
+            <en><![CDATA[
+            By proceeding with the order I confirm that I have read and agree to the
+            <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a>.
+            ]]></en>
+        </locale>
+        <locale name="message.active.account" html="true">
+            <de><![CDATA[
+            Unter dieser E-Mail-Adresse existiert bereits ein aktiver Account. Bitte logg dich ein und gib gegebenenfalls deine richtigen Adressdaten ein.
+            ]]></de>
+            <en><![CDATA[
+            An active account already exists under this email address. Please log in and enter your correct address data if necessary.
+            ]]></en>
+        </locale>
+        <locale name="message.account.alreadyExists">
+            <de><![CDATA[
+            Wir möchten darauf hinweisen, dass bereits Bestellungen unter dieser E-Mail-Adresse in unserem System existieren.
+            Um eine weitere Bestellung mit dieser Adresse zu ermöglichen, sendeten wir dir einen Validierungslink an [email].
+            Bitte klicke auf den Link in der E-Mail oder verwende eine andere E-Mail-Adresse für deine Bestellung.
+            ]]></de>
+            <en><![CDATA[
+            We would like to point out that orders under this email address already exist in our system.
+            To enable another order with this address, we sent you a validation link to [email].
+            Please click on the link in the email or use another email address for your order.
+            ]]></en>
+        </locale>
+
+        <locale name="mail.auth.subject">
+            <de><![CDATA[Authentifizierung deiner Gastbestellung]]></de>
+            <en><![CDATA[Authentication of your guest order]]></en>
+        </locale>
+        <locale name="mail.auth.body" html="true">
+            <de><![CDATA[
+            <h1>Hallo,</h1>
+            <p>Vielen Dank für dein Interesse an unseren Produkten und deine vorherige Gastbestellung unter der E-Mail-Adresse [email].</p>
+
+            <p>Um sicherzustellen, dass deine erneute Bestellung reibungslos verarbeitet werden kann, benötigen wir eine kurze Bestätigung deiner E-Mail-Adresse.
+            Bitte klicke auf den unten stehenden Link, um deine E-Mail-Adresse zu authentifizieren:</p>
+            <p><a href="[activationLink]">Authentifizierungslink</a></p>
+
+            <p>Sobald du auf den Link klickst, wird deine E-Mail-Adresse verifiziert, und du kannst deine Bestellung direkt fortsetzen.
+            Falls du keine erneute Bestellung tätigen möchtest oder diese E-Mail irrtümlich erhalten hast, kannst du sie einfach ignorieren.</p>
+
+            <p>Vielen Dank für deine Unterstützung und dein Vertrauen in unser Unternehmen.
+            Bei Fragen oder Anliegen stehen wir dir gerne zur Verfügung.</p>
+
+            <p>Mit freundlichen Grüßen,</p>
+
+            ]]></de>
+            <en><![CDATA[
+            <h1>Hello,</h1>
+            <p>Thank you for your interest in our products and your previous guest order at the email address [email].</p>
+
+            <p>To ensure that your new order can be processed smoothly, we need a brief confirmation of your email address.
+            Please click the link below to authenticate your email address:</p>
+            <p><a href="[activationLink]">insert authentication link</a>.</p>
+
+            <p>Once you click on the link, your email address will be verified and you can proceed with your order directly.
+            If you don't want to place another order or you received this email by mistake, you can simply ignore it.</p>
+
+            <p>Thank you for your support and confidence in our company.
+            If you have any questions or concerns, please do not hesitate to contact us.</p>
+
+            <p>Sincerely yours,</p>
+            ]]></en>
+        </locale>
+
+        <locale name="message.registration_success">
+            <de><![CDATA[
+            Deine E-Mail-Adresse wurde erfolgreich authentifiziert. Du kannst jetzt mit deiner Bestellung fortfahren.
+            Du wirst in wenigen Sekunden automatisch zur Bestellseite weitergeleitet.
+            ]]></de>
+            <en><![CDATA[
+            Your email address has been successfully authenticated. You can now proceed with your order.
+            You will be automatically redirected to the order page in a few seconds.
+            ]]></en>
+        </locale>
+
+        <locale name="message.guest.sendInvoice.thanks">
+            <de><![CDATA[Vielen Dank! Deine Daten wurden erfolgreich gespeichert.]]></de>
+            <en><![CDATA[Thank you very much! Your data has been successfully saved.]]></en>
+        </locale>
+        <locale name="message.guest.sendInvoice.invoiceSuccessful">
+            <de><![CDATA[
+            Eine Rechnung wurde an deine E-Mail-Adresse gesendet. Bitte überprüfe dein Postfach.
+            ]]></de>
+            <en><![CDATA[
+            An invoice has been sent to your email address. Please check your mailbox.
+            ]]></en>
+        </locale>
+        <locale name="message.guest.sendInvoice.accountCreation">
+            <de><![CDATA[
+            Herzlichen Dank für die Erstellung deines Accounts in unserem Shop! Wir haben dir eine E-Mail gesendet,
+            damit du deine Account-Registrierung abschließen kannst.
+            Bitte überprüfe dein Postfach, um den Prozess abzuschließen
+            ]]></de>
+            <en><![CDATA[
+            Thank you for creating your account in our store! We have sent you an e-mail so that you can complete your account registration.
+            Please check your inbox to complete the process.
+            ]]></en>
+        </locale>
+
+        <locale name="message.guest.sendInvoice.error">
+            <de><![CDATA[
+            Leider ist ein Fehler aufgetreten und die Aktion konnte nicht durchgeführt werden.
+            Wenden Sie sich bitte an den Shopbetreiber
+            ]]></de>
+            <en><![CDATA[
+            Unfortunately, an error occurred and the action could not be executed.
+            Please contact the store operator
+            ]]></en>
+        </locale>
+    </groups>
+
+    <groups name="quiqqer/order-guestorder" datatype="php">
+        <locale name="control.guestOrderButton.header">
+            <de><![CDATA[Als Gast bestellen]]></de>
+            <en><![CDATA[Order as guest]]></en>
+        </locale>
+        <locale name="control.guestOrderButton.button">
+            <de><![CDATA[Ich möchte die Bestellung als Gast durchführen.]]></de>
+            <en><![CDATA[I would like to place the order as a guest.]]></en>
+        </locale>
+        <locale name="control.guestOrderButton.next">
+            <de><![CDATA[Weiter]]></de>
+            <en><![CDATA[Next]]></en>
+        </locale>
+        <locale name="control.guestOrderButton.info">
+            <de><![CDATA[
+            <p>Um deine Bestellung aufzugeben, benötigen wir deine E-Mail-Adresse. Sobald du diese angibst,
+                kannst du ganz einfach als Gast fortfahren und deine Bestellung abschließen.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p>To place your order, we need your email address. Once you provide this,
+            you can easily proceed as a guest and complete your order.</p>
+            ]]></en>
+        </locale>
+
+
+        <locale name="control.missingAddressData.header">
+            <de><![CDATA[Fehlende Adressdaten]]></de>
+            <en><![CDATA[Missing address data]]></en>
+        </locale>
+        <locale name="control.missingAddressData.text">
+            <de><![CDATA[
+            <p>Um Ihnen eine Rechnung ordnungsgemäß ausstellen zu können, bitten wir Sie, Ihre Adressdaten sorgfältig einzugeben.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p>In order to properly issue you an invoice, we ask that you carefully enter your address information.</p>
+            ]]></en>
+        </locale>
+
+    </groups>
+
+</locales>
