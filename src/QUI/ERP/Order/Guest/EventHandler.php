@@ -11,7 +11,7 @@ use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\Exception;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
 use QUI\Rewrite;
-use QUI\Smarty\Collector;
+use Quiqqer\Engine\Collector;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
