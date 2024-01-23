@@ -216,11 +216,9 @@ class EventHandler
             // create normal account
             if (QUI::getUsers()->usernameExists($email)) {
                 // user already exists
-                // @deprecated
                 $User = QUI::getUsers()->getUserByName($email);
                 $Order->setCustomer($User);
             } elseif (GuestOrder::isAnonymousOrder()) {
-                // @deprecated
                 $GuestUser->setAttribute('email', $email);
                 $Order->setCustomer($GuestUser);
             } else {

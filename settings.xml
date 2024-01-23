@@ -15,6 +15,10 @@
                     <type><![CDATA[bool]]></type>
                     <defaultvalue>1></defaultvalue>
                 </conf>
+                <conf name="prevent_duplicate_guest_order_registration">
+                    <type><![CDATA[bool]]></type>
+                    <defaultvalue>0></defaultvalue>
+                </conf>
             </section>
         </config>
 
@@ -77,6 +81,17 @@
                             <description>
                                 <locale group="quiqqer/order-guestorder"
                                         var="settings.guest.invoicing_for_guests.description"/>
+                            </description>
+                        </input>
+
+                        <input conf="guestorder.prevent_duplicate_guest_order_registration" type="checkbox">
+                            <text>
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.prevent_duplicate_guest_order_registration"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder"
+                                        var="settings.guest.prevent_duplicate_guest_order_registration.description"/>
                             </description>
                         </input>
                     </settings>
