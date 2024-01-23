@@ -1,5 +1,7 @@
 # Guest ordering
 
+![Guest Order](bin/images/Readme.png)
+
 The Guest Order module extends the functionality of QUIQQER and ecoyn to allow anonymous ordering and guest ordering.
 
 Package name:

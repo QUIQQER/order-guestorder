@@ -331,6 +331,31 @@
             ]]></en>
         </locale>
 
+        <locale name="settings.guest.prevent_duplicate_guest_order_registration">
+            <de><![CDATA[Vermeidung doppelter Registrierungen für wiederkehrende Gastbestellungen]]></de>
+            <en><![CDATA[Avoidance of duplicate registrations for recurring guest orders]]></en>
+        </locale>
+        <locale name="settings.guest.prevent_duplicate_guest_order_registration.description">
+            <de><![CDATA[
+            <p>Mit dieser Option kannst Du wiederkehrende Bestellungen von Gästen ohne eine erneute Registrierung direkt einem bestehenden Kundenkonto zuordnen.
+            Wenn diese Funktion aktiviert ist, werden Bestellungen, die mit einer bereits bekannten E-Mail-Adresse getätigt werden,
+            automatisch dem zugehörigen Kundenkonto zugefügt. Das verhindert die Erstellung eines neuen Kontos bei jeder neuen Bestellung.
+            So wird der Bestellprozess für wiederkehrende Gäste vereinfacht und die Verwaltung von Kundenkonten effizienter.</p>
+
+            <p>Bitte beachte, dass diese Einstellung vor allem dann sinnvoll ist, wenn es keine Frontend-Kundenkonten gibt,
+            also wenn Kunden sich nicht selbst im System anmelden können.</p>
+            ]]></de>
+            <en><![CDATA[
+            <p>With this option, you can assign recurring orders from guests directly to an existing customer account without having to register again.
+            If this feature is activated, orders placed with an already known e-mail address will be automatically added to the associated customer account.
+            This prevents the creation of a new account for each new order and simplifies the ordering process for
+            returning guests and makes customer account management more efficient.</p>
+
+            <p>Please note that this setting is particularly useful if there are no front-end customer accounts,
+            i.e. when customers cannot log into the system themselves.</p>
+            ]]></en>
+        </locale>
+
     </groups>
 
 </locales>
