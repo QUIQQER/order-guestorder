@@ -9,6 +9,8 @@
             <locale group="quiqqer/order-guestorder" var="package.description"/>
         </description>
 
+        <image src="URL_OPT_DIR/quiqqer/order-guestorder/bin/images/Logo.png"/>
+
         <support>
             <email><![CDATA[support@pcsg.de]]></email>
             <forum><![CDATA[https://community.quiqqer.com]]></forum>
