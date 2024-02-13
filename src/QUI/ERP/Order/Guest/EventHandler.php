@@ -235,7 +235,12 @@ class EventHandler
 
         // the user wanted an account after all, and he has checked the checkbox
         // we have to create an account via frontend users because of the mail auth stuff
-        $User = GuestOrder::triggerFrontendUsersRegistration($email);
+        try {
+            $User = GuestOrder::triggerFrontendUsersRegistration($email);
+        } catch (\Exception $exception) {
+            QUI\System\Log::addError($exception->getMessage());
+            throw $exception;
+        }
 
         $Address = $User->getStandardAddress();
         $Address->setAttributes($CustomerAddress->getAttributes());
