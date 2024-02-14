@@ -244,7 +244,7 @@ class GuestOrder
             if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
                 $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
             }
-        } catch (QUI\Exception $exception) {
+        } catch (QUI\Exception) {
         }
 
         $User->save($SystemUser);
