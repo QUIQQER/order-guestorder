@@ -180,14 +180,8 @@ class EventHandler
      *
      * @param OrderProcess $OrderProcess
      * @return void
-     * @throws Exception
-     * @throws QUI\ERP\Exception
-     * @throws QUI\FrontendUsers\Exception
-     * @throws QUI\Permissions\Exception
-     * @throws QUI\Users\Exception
-     * @throws UserAlreadyExistsException
      */
-    public static function onQuiqqerOrderProcessSendCreateOrder(QUI\ERP\Order\OrderProcess $OrderProcess)
+    public static function onQuiqqerOrderProcessSend(QUI\ERP\Order\OrderProcess $OrderProcess)
     {
         if (!GuestOrder::isActive()) {
             return null;
@@ -196,6 +190,10 @@ class EventHandler
         try {
             $Order = $OrderProcess->getOrder();
         } catch (\Exception $Exception) {
+            QUI\System\Log::addError($Exception->getMessage(), [
+                'event' => 'onQuiqqerOrderProcessSend'
+            ]);
+
             return;
         }
 
@@ -208,47 +206,53 @@ class EventHandler
             return;
         }
 
-        $CustomerAddress = $Customer->getAddress();
-        $SystemUser = QUI::getUsers()->getSystemUser();
-        $email = QUI::getSession()->get(GuestOrder::EMAIL);
+        try {
+            $CustomerAddress = $Customer->getAddress();
+            $SystemUser = QUI::getUsers()->getSystemUser();
+            $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
-        if (empty($_REQUEST['guest-order-create-account'])) {
-            // create normal account
-            if (QUI::getUsers()->usernameExists($email)) {
-                // user already exists
-                $User = QUI::getUsers()->getUserByName($email);
-                $Order->setCustomer($User);
-            } elseif (GuestOrder::isAnonymousOrder()) {
-                $GuestUser->setAttribute('email', $email);
-                $Order->setCustomer($GuestUser);
-            } else {
-                $User = GuestOrder::createGuestAccount($email, $CustomerAddress);
+            if (empty($_REQUEST['guest-order-create-account'])) {
+                // create normal account
+                if (QUI::getUsers()->usernameExists($email)) {
+                    // user already exists
+                    $User = QUI::getUsers()->getUserByName($email);
+                    $Order->setCustomer($User);
+                } elseif (GuestOrder::isAnonymousOrder()) {
+                    $GuestUser->setAttribute('email', $email);
+                    $Order->setCustomer($GuestUser);
+                } else {
+                    $User = GuestOrder::createGuestAccount($email, $CustomerAddress);
 
-                $Order->setCustomer($User);
-                $Order->setInvoiceAddress($User->getStandardAddress());
+                    $Order->setCustomer($User);
+                    $Order->setInvoiceAddress($User->getStandardAddress());
+                }
+
+                $Order->save($SystemUser);
+
+                return;
             }
 
+            // the user wanted an account after all, and he has checked the checkbox
+            // we have to create an account via frontend users because of the mail auth stuff
+            $User = GuestOrder::triggerFrontendUsersRegistration($email);
+
+
+            $Address = $User->getStandardAddress();
+            $Address->setAttributes($CustomerAddress->getAttributes());
+            $Address->save($SystemUser);
+
+            $User->setAttribute('firstname', $CustomerAddress->getAttribute('firstname'));
+            $User->setAttribute('lastname', $CustomerAddress->getAttribute('lastname'));
+            $User->setAttribute('email', $email);
+            $User->save($SystemUser);
+
+            $Order->setCustomer($User);
+            $Order->setInvoiceAddress($Address);
             $Order->save($SystemUser);
-
-            return;
+        } catch (\Exception $exception) {
+            QUI\System\Log::writeException($exception);
+            QUI\System\Log::addError($exception->getMessage());
         }
-
-        // the user wanted an account after all, and he has checked the checkbox
-        // we have to create an account via frontend users because of the mail auth stuff
-        $User = GuestOrder::triggerFrontendUsersRegistration($email);
-
-        $Address = $User->getStandardAddress();
-        $Address->setAttributes($CustomerAddress->getAttributes());
-        $Address->save($SystemUser);
-
-        $User->setAttribute('firstname', $CustomerAddress->getAttribute('firstname'));
-        $User->setAttribute('lastname', $CustomerAddress->getAttribute('lastname'));
-        $User->setAttribute('email', $email);
-        $User->save($SystemUser);
-
-        $Order->setCustomer($User);
-        $Order->setInvoiceAddress($Address);
-        $Order->save($SystemUser);
     }
 
     /**
