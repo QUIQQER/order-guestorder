@@ -184,7 +184,7 @@ class EventHandler
     public static function onQuiqqerOrderProcessSend(QUI\ERP\Order\OrderProcess $OrderProcess)
     {
         if (!GuestOrder::isActive()) {
-            return null;
+            return;
         }
 
         try {
@@ -420,6 +420,10 @@ class EventHandler
      */
     public static function extendCheckout(Collector $Collector, $User, $Order)
     {
+        if (QUI::getUsers()->isAuth(QUI::getUserBySession())) {
+            return;
+        }
+
         if (!GuestOrder::isActive()) {
             return null;
         }
@@ -610,7 +614,7 @@ class EventHandler
      * @return void
      * @throws Exception
      */
-    protected static function onRequestInvoiceCreation()
+    protected static function onRequestInvoiceCreation(): void
     {
         if (!QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
             self::redirectToMainSite();
