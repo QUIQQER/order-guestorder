@@ -505,9 +505,7 @@ class EventHandler
 
         $html .= '</div>';
 
-        if (!empty($html)) {
-            $Collector->append($html);
-        }
+        $Collector->append($html);
     }
 
     //endregion
