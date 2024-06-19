@@ -11,7 +11,7 @@ use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\Exception;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
 use QUI\Rewrite;
-use Quiqqer\Engine\Collector;
+use QUI\Smarty\Collector;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,7 +33,7 @@ class EventHandler
      * @throws UserAlreadyExistsException
      * @throws \PHPMailer\PHPMailer\Exception
      */
-    public static function onRequest(Rewrite $Rewrite, string $url)
+    public static function onRequest(Rewrite $Rewrite, string $url): void
     {
         if (
             !isset($_REQUEST['guestorder'])
@@ -169,7 +169,7 @@ class EventHandler
 
         try {
             return $Handler->getOrderInProcess($orderId);
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             return null;
         }
     }
@@ -181,7 +181,7 @@ class EventHandler
      * @param OrderProcess $OrderProcess
      * @return void
      */
-    public static function onQuiqqerOrderProcessSend(QUI\ERP\Order\OrderProcess $OrderProcess)
+    public static function onQuiqqerOrderProcessSend(QUI\ERP\Order\OrderProcess $OrderProcess): void
     {
         if (!GuestOrder::isActive()) {
             return;
@@ -202,7 +202,7 @@ class EventHandler
 
         // no guest user? we have nothing to do
         // if yes, we have to create the user
-        if ($Customer->getId() !== $GuestUser->getId()) {
+        if ($Customer->getUUID() !== $GuestUser->getUUID()) {
             return;
         }
 
@@ -342,7 +342,7 @@ class EventHandler
         OrderProcess $OrderProcess,
         ?AbstractOrder $Order,
         OrderProcessSteps $Steps
-    ) {
+    ): void {
         if (!GuestOrder::isActive()) {
             return;
         }
@@ -395,15 +395,16 @@ class EventHandler
      *
      * @param Collector $Collector The collector object to append the guest order button to
      * @return void
+     * @throws \Exception
      */
-    public static function extendOrder(Collector $Collector)
+    public static function extendOrder(Collector $Collector): void
     {
         if (!GuestOrder::isActive()) {
-            return null;
+            return;
         }
 
         if (!QUI::isFrontend()) {
-            return null;
+            return;
         }
 
         $GuestInit = new GuestOrderButton();
@@ -418,14 +419,14 @@ class EventHandler
      * @param mixed $Order - The order object
      * @return void
      */
-    public static function extendCheckout(Collector $Collector, $User, $Order)
+    public static function extendCheckout(Collector $Collector, mixed $User, mixed $Order): void
     {
         if (QUI::getUsers()->isAuth(QUI::getUserBySession())) {
             return;
         }
 
         if (!GuestOrder::isActive()) {
-            return null;
+            return;
         }
 
         if (!QUI::isFrontend()) {
@@ -455,8 +456,9 @@ class EventHandler
      * @param array $Articles - The order articles
      *
      * @return void
+     * @throws Exception
      */
-    public static function extendMail(Collector $Collector, AbstractOrder $Order, $Articles)
+    public static function extendMail(Collector $Collector, AbstractOrder $Order, array $Articles)
     {
         if (!GuestOrder::isActive()) {
             return null;
@@ -465,14 +467,14 @@ class EventHandler
         // activated users do not need activation links
         $Customer = $Order->getCustomer();
 
-        if ($Customer->getId()) {
+        if ($Customer->getUUID()) {
             try {
-                $User = QUI::getUsers()->get($Customer->getId());
+                $User = QUI::getUsers()->get($Customer->getUUID());
 
                 if ($User->isActive() && !($User instanceof GuestOrderUser)) {
                     return;
                 }
-            } catch (QUI\Exception $exception) {
+            } catch (QUI\Exception) {
             }
         }
 
@@ -526,13 +528,12 @@ class EventHandler
      * @throws UserAlreadyExistsException
      * @throws \PHPMailer\PHPMailer\Exception
      */
-    protected static function onRequestUserCreation()
+    protected static function onRequestUserCreation(): void
     {
         try {
             $Order = QUI\ERP\Order\Handler::getInstance()->getOrderByHash($_REQUEST['o']);
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             self::redirectToMainSite();
-            return;
         }
 
         $user = $_REQUEST['u'];
@@ -540,13 +541,13 @@ class EventHandler
 
         try {
             $User = QUI::getUsers()->getUserByName($user);
-        } catch (QUI\Exception $exception) {
+        } catch (QUI\Exception) {
         }
 
         if (!$User) {
             try {
                 $User = QUI::getUsers()->getUserByMail($user);
-            } catch (QUI\Exception $exception) {
+            } catch (QUI\Exception) {
             }
         }
 
@@ -555,7 +556,6 @@ class EventHandler
 
         if ($email !== $user) {
             self::redirectToMainSite();
-            return;
         }
 
         if (!$User) {
@@ -588,7 +588,6 @@ class EventHandler
 
         if ($User->isActive()) {
             self::redirectToMainSite();
-            return;
         }
 
         GuestOrder::sendNewPasswordMail($User);
@@ -611,12 +610,12 @@ class EventHandler
      *
      * @return void
      * @throws Exception
+     * @throws \Exception
      */
     protected static function onRequestInvoiceCreation(): void
     {
         if (!QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
             self::redirectToMainSite();
-            return;
         }
 
         $order = $_REQUEST['o'];
@@ -624,9 +623,8 @@ class EventHandler
 
         try {
             $Order = QUI\ERP\Order\Handler::getInstance()->getOrderByHash($order);
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             self::redirectToMainSite();
-            return;
         }
 
         $Customer = $Order->getCustomer();
@@ -634,7 +632,6 @@ class EventHandler
 
         if ($email !== $user) {
             self::redirectToMainSite();
-            return;
         }
 
         // check address
@@ -643,8 +640,8 @@ class EventHandler
         $User = null;
 
         try {
-            $User = QUI::getUsers()->get($Customer->getId());
-        } catch (QUI\Exception $exception) {
+            $User = QUI::getUsers()->get($Customer->getUUID());
+        } catch (QUI\Exception) {
         }
 
         if (!count($missing)) {
@@ -671,10 +668,10 @@ class EventHandler
     /**
      * Redirects the user to the main website
      *
-     * @return void
+     * @return never
      * @throws Exception
      */
-    protected static function redirectToMainSite()
+    protected static function redirectToMainSite(): never
     {
         $Redirect = new RedirectResponse(QUI::getRewrite()->getProject()->getVHost(true, true));
         $Redirect->setStatusCode(Response::HTTP_SEE_OTHER);
@@ -690,7 +687,7 @@ class EventHandler
      * @return void
      * @throws Exception
      */
-    protected static function setSiteContent(string $content)
+    protected static function setSiteContent(string $content): void
     {
         $Site = QUI::getRewrite()->getSite();
         $Site->setAttribute('short', '');
@@ -706,7 +703,7 @@ class EventHandler
      * @return void
      * @throws Exception
      */
-    protected static function showSiteError()
+    protected static function showSiteError(): void
     {
         self::setSiteContent(
             '<div class="messages message-error">' .

@@ -7,9 +7,6 @@ use QUI\ERP\Order\AbstractOrder;
 
 class MissingAddressData extends QUI\Control
 {
-    /**
-     * @param array $attributes
-     */
     public function __construct(array $attributes = [])
     {
         $this->setAttributes([
@@ -23,10 +20,6 @@ class MissingAddressData extends QUI\Control
         parent::__construct($attributes);
     }
 
-    /**
-     * @return string
-     * @throws QUI\Exception
-     */
     public function getBody(): string
     {
         $Order = $this->getAttribute('Order');

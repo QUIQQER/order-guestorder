@@ -11,12 +11,12 @@ use QUI\Verification\AbstractVerification;
  */
 class EmailVerification extends AbstractVerification
 {
-    public function onSuccess()
+    public function onSuccess(): void
     {
         GuestOrder::setGuestOrderFlag();
     }
 
-    public function onError()
+    public function onError(): void
     {
     }
 
@@ -24,7 +24,7 @@ class EmailVerification extends AbstractVerification
     {
         try {
             $orderLink = QUI\ERP\Order\Utils\Utils::getOrderProcess(QUI::getRewrite()->getProject())->getUrlRewritten();
-        } catch (QUI\Exception $exception) {
+        } catch (QUI\Exception) {
             $orderLink = '/';
         }
 

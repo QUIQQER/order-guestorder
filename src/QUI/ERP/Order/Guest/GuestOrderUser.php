@@ -65,7 +65,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     //region setter
 
-    public function setCompanyStatus($status = false)
+    public function setCompanyStatus($status = false): void
     {
         $this->setAttribute('isCompany', $status);
     }
@@ -120,7 +120,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
                 ],
                 'limit' => 1
             ]);
-        } catch (Exception $exception) {
+        } catch (Exception) {
             return false;
         }
 

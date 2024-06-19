@@ -29,7 +29,7 @@ QUI::$Ajax->registerFunction(
             }
 
             return 0;
-        } catch (\Exception $exception) {
+        } catch (Exception) {
         }
 
         try {
@@ -40,7 +40,7 @@ QUI::$Ajax->registerFunction(
             }
 
             return 0;
-        } catch (\Exception $exception) {
+        } catch (Exception) {
         }
 
         return -1;

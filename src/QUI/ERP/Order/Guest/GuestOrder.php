@@ -9,7 +9,7 @@ use QUI\Mail\Mailer;
 use QUI\Projects\Project;
 use QUI\System\Log;
 use QUI\Users\Address;
-use QUI\Users\User;
+use QUI\Interfaces\Users\User;
 
 use function http_build_query;
 
@@ -23,7 +23,7 @@ class GuestOrder
      *
      * @return void
      */
-    public static function setGuestOrderFlag()
+    public static function setGuestOrderFlag(): void
     {
         if (GuestOrder::isActive()) {
             QUI::getSession()->set(self::FLAG, 1);
@@ -34,7 +34,7 @@ class GuestOrder
      * remove the guest order flag
      * so, we are not in a guest order anymore
      */
-    public static function removeGuestOrderFlag()
+    public static function removeGuestOrderFlag(): void
     {
         if (GuestOrder::isActive()) {
             QUI::getSession()->remove(self::FLAG);
@@ -107,7 +107,7 @@ class GuestOrder
                 'guestorder' => 1,
                 't' => 'invoice',
                 'u' => $Customer->getAttribute('email'),
-                'o' => $Order->getHash()
+                'o' => $Order->getUUID()
             ]);
     }
 
@@ -128,7 +128,7 @@ class GuestOrder
                 'guestorder' => 1,
                 't' => 'account',
                 'u' => $Customer->getAttribute('email'),
-                'o' => $Order->getHash()
+                'o' => $Order->getUUID()
             ]);
     }
 
@@ -141,7 +141,7 @@ class GuestOrder
      * @throws QUI\Exception
      * @throws QUI\Verification\Exception
      */
-    public static function sendEmailVerification(string $email, QUI\Projects\Project $Project = null)
+    public static function sendEmailVerification(string $email, QUI\Projects\Project $Project = null): void
     {
         if ($Project === null) {
             $Project = QUI::getRewrite()->getProject();
@@ -207,7 +207,7 @@ class GuestOrder
             if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
                 $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
             }
-        } catch (QUI\Exception $exception) {
+        } catch (QUI\Exception) {
         }
 
         $User->save(QUI::getUsers()->getSystemUser());
@@ -255,13 +255,13 @@ class GuestOrder
     /**
      * Sends a new password email to the specified user
      *
-     * @param \QUI\Interfaces\Users\User $User The user object to send the email to
+     * @param User $User The user object to send the email to
      *
      * @return void
-     * @throws \QUI\Exception
+     * @throws QUI\Exception
      * @throws \PHPMailer\PHPMailer\Exception
      */
-    public static function sendNewPasswordMail(QUI\Interfaces\Users\User $User)
+    public static function sendNewPasswordMail(User $User): void
     {
         // password mail and activation mail
         $newPassword = QUI\Security\Password::generateRandom();
