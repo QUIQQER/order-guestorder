@@ -27,7 +27,7 @@ QUI::$Ajax->registerFunction(
         }
 
         // this is only for anonymous orders
-        if ($Customer->getId() !== $Guest->getId()) {
+        if ($Customer->getUUID() !== $Guest->getUUID()) {
             throw new QUI\Exception(
                 QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
             );
@@ -103,7 +103,7 @@ QUI::$Ajax->registerFunction(
             '</p>';
 
         try {
-            $User = QUI::getUsers()->get($Customer->getId());
+            $User = QUI::getUsers()->get($Customer->getUUID());
 
             if ($User instanceof GuestOrderUser && !empty($data['guest-order-create-account'])) {
                 $User = GuestOrder::triggerFrontendUsersRegistration($email);

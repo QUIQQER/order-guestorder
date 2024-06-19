@@ -26,7 +26,7 @@ QUI::$Ajax->registerFunction(
             if ($User->isActive()) {
                 return;
             }
-        } catch (\Exception) {
+        } catch (Exception) {
         }
 
         try {
@@ -35,7 +35,7 @@ QUI::$Ajax->registerFunction(
             if ($User->isActive()) {
                 return;
             }
-        } catch (\Exception) {
+        } catch (Exception) {
         }
 
         // set guest session

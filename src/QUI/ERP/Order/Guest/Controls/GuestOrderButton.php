@@ -2,6 +2,7 @@
 
 namespace QUI\ERP\Order\Guest\Controls;
 
+use Exception;
 use QUI;
 
 use function dirname;
@@ -11,10 +12,7 @@ use function dirname;
  */
 class GuestOrderButton extends QUI\Control
 {
-    /**
-     * @param $attributes
-     */
-    public function __construct($attributes = [])
+    public function __construct(array $attributes = [])
     {
         $this->setAttributes([
             'data-qui' => 'package/quiqqer/order-guestorder/bin/frontend/controls/GuestOrderButton'
@@ -29,6 +27,7 @@ class GuestOrderButton extends QUI\Control
     /**
      * @return string
      * @throws QUI\Exception
+     * @throws Exception
      */
     public function getBody(): string
     {
