@@ -27,6 +27,11 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         return 6;
     }
 
+    public function getUUID(): string|int
+    {
+        return "6";
+    }
+
     public function getUniqueId(): string
     {
         return $this->getGuestOrderId();
