@@ -18,6 +18,8 @@ class GuestOrder
     const FLAG = 'guest-order-is-guest';
     const EMAIL = 'guest-order-email';
 
+    const CUSTOMER_ID = 'guest-customer_id';
+
     /**
      * sets the flag, so we know if we are in a guest order
      *
