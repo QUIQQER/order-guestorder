@@ -139,7 +139,7 @@ class EventHandler
             $result = QUI::getDataBase()->fetch([
                 'from' => $Handler->table(),
                 'where' => [
-                    'hash' => $guestId,
+                    'id' => $guestId,
                 ],
                 'limit' => 1,
                 'order' => 'c_date DESC'
@@ -152,16 +152,12 @@ class EventHandler
                 $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
                 if ($customer['email'] === $email) {
-                    if (isset($customer['uuid'])) {
-                        QUI::getSession()->set(GuestOrder::CUSTOMER_UUID, $customer['uuid']);
-                    }
-
                     if (isset($customer['id'])) {
                         QUI::getSession()->set(GuestOrder::CUSTOMER_ID, $customer['id']);
                     }
 
                     try {
-                        return $Handler->get($result[0]['hash']);
+                        return $Handler->get($result[0]['id']);
                     } catch (\Exception) {
                     }
                 }
@@ -291,6 +287,7 @@ class EventHandler
             QUI\System\Log::addError($exception->getMessage());
         }
     }
+
     public static function onQuiqqerOrderCreated(AbstractOrder $Order): void
     {
         if (!($Order instanceof QUI\ERP\Order\Order)) {
