@@ -9,6 +9,7 @@
 
     <event on="onQuiqqerOrderProcessSend" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderProcessSend"/>
     <event on="onQuiqqerOrderProcessingStart" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderProcessSend"/>
+    <event on="onQuiqqerOrderCreated" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderCreated"/>
 
     <event on="onQuiqqer::order::orderProcess::nobody::end" fire="\QUI\ERP\Order\Guest\EventHandler::extendOrder"/>
     <event on="onQuiqqer::order::orderProcessCheckoutEnd" fire="\QUI\ERP\Order\Guest\EventHandler::extendCheckout"/>

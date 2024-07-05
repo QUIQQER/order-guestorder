@@ -24,11 +24,19 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     public function getId(): int
     {
+        if ((int)QUI::getSession()->get(GuestOrder::CUSTOMER_ID)) {
+            return (int)QUI::getSession()->get(GuestOrder::CUSTOMER_ID);
+        }
+
         return 6;
     }
 
     public function getUUID(): string|int
     {
+        if (QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)) {
+            return QUI::getSession()->get(GuestOrder::CUSTOMER_UUID);
+        }
+
         return "6";
     }
 
