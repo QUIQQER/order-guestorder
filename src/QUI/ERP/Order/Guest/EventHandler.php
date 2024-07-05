@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use function count;
 use function date;
 use function floatval;
+use function json_decode;
 
 class EventHandler
 {
@@ -112,7 +113,7 @@ class EventHandler
      * @return QUI\ERP\Order\OrderInProcess|null
      * @throws QUI\Database\Exception
      */
-    public static function onOrderProcessGetOrder($OrderProcess): ?QUI\ERP\Order\OrderInProcess
+    public static function onOrderProcessGetOrder($OrderProcess): ?AbstractOrder
     {
         if (!GuestOrder::isActive()) {
             return null;
@@ -130,7 +131,43 @@ class EventHandler
         }
 
         $guestId = $SessionUser->getGuestOrderId();
-        $sessId = $SessionUser->getId();
+        $sessId = $SessionUser->getUUID();
+
+        if (
+            isset($_REQUEST['step']) && $_REQUEST['step'] === 'Processing'
+            || $OrderProcess->getAttribute('step') === 'Processing'
+        ) {
+            $result = QUI::getDataBase()->fetch([
+                'from' => $Handler->table(),
+                'where' => [
+                    'hash' => $guestId,
+                ],
+                'limit' => 1,
+                'order' => 'c_date DESC'
+            ]);
+
+            // order already processed and send
+            if (isset($result[0])) {
+                $customer = $result[0]['customer'];
+                $customer = json_decode($customer, true);
+                $email = QUI::getSession()->get(GuestOrder::EMAIL);
+
+                if ($customer['email'] === $email) {
+                    if (isset($customer['uuid'])) {
+                        QUI::getSession()->set(GuestOrder::CUSTOMER_UUID, $customer['uuid']);
+                    }
+
+                    if (isset($customer['id'])) {
+                        QUI::getSession()->set(GuestOrder::CUSTOMER_ID, $customer['id']);
+                    }
+
+                    try {
+                        return $Handler->get($result[0]['hash']);
+                    } catch (\Exception) {
+                    }
+                }
+            }
+        }
 
         $result = QUI::getDataBase()->fetch([
             'from' => $Handler->tableOrderProcess(),
@@ -252,6 +289,44 @@ class EventHandler
         } catch (\Exception $exception) {
             QUI\System\Log::writeException($exception);
             QUI\System\Log::addError($exception->getMessage());
+        }
+    }
+
+    public static function onQuiqqerOrderCreated(AbstractOrder $Order): void
+    {
+        if (!($Order instanceof QUI\ERP\Order\Order)) {
+            return;
+        }
+
+        $SessionUser = QUI::getUserBySession();
+
+        if (!($SessionUser instanceof GuestOrderUser)) {
+            return;
+        }
+
+        $Handler = QUI\ERP\Order\Handler::getInstance();
+        $guestId = $SessionUser->getGuestOrderId();
+        $sessId = $SessionUser->getId();
+        $orderProcessId = $Order->getAttribute('order_process_id');
+
+        try {
+            $result = QUI::getDataBase()->fetch([
+                'from' => $Handler->tableOrderProcess(),
+                'where' => [
+                    'guestOrder' => $guestId,
+                    'hash' => $orderProcessId
+                ],
+                'limit' => 1,
+                'order' => 'c_date DESC'
+            ]);
+
+            if (isset($result[0])) {
+                $Order->setData('guest-order-hash', $guestId);
+                $Order->update(QUI::getUsers()->getSystemUser());
+
+                QUI::getSession()->set('guest-order-id', $Order->getUUID());
+            }
+        } catch (\Exception) {
         }
     }
 
