@@ -78,7 +78,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     //region setter
 
-    public function setCompanyStatus($status = false): void
+    public function setCompanyStatus(bool $status = false): void
     {
         $this->setAttribute('isCompany', $status);
     }
