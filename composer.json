@@ -20,6 +20,7 @@
   },
   "require": {
     "php": ">=7.4",
+    "quiqqer\/quiqqer": "1.*",
     "quiqqer\/order": "*"
   },
   "autoload": {

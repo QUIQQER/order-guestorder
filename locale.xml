@@ -299,8 +299,8 @@
             <en><![CDATA[Order as guest]]></en>
         </locale>
         <locale name="control.guestOrderButton.button">
-            <de><![CDATA[Ich möchte die Bestellung als Gast durchführen.]]></de>
-            <en><![CDATA[I would like to place the order as a guest.]]></en>
+            <de><![CDATA[Als Gast bestellen]]></de>
+            <en><![CDATA[Order as a guest]]></en>
         </locale>
         <locale name="control.guestOrderButton.next">
             <de><![CDATA[Weiter]]></de>
