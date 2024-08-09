@@ -1,9 +1,4 @@
-.guest-order-login {
-    padding: 3rem 2rem 2rem 2rem;
-    width: 33%;
-}
-
-.guest-order-login h2:first-child {
+ .guest-order-login h2:first-child {
     position: relative;
     text-align: center;
 }
