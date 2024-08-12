@@ -2,10 +2,11 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    level: 1
+    level: 5
     paths:
         - src
         - ajax
+    tipsOfTheDay: false
     bootstrapFiles:
         - tests/phpstan-bootstrap.php
 
