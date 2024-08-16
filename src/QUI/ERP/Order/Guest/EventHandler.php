@@ -112,7 +112,7 @@ class EventHandler
      * this event hooks into the getOrder process and returns the guest order if necessary
      *
      * @param $OrderProcess
-     * @return QUI\ERP\Order\OrderInProcess|null
+     * @return AbstractOrder|null
      * @throws QUI\Database\Exception
      */
     public static function onOrderProcessGetOrder($OrderProcess): ?AbstractOrder
