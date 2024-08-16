@@ -20,6 +20,7 @@ use function count;
 use function date;
 use function floatval;
 use function json_decode;
+use function method_exists;
 
 class EventHandler
 {
@@ -265,7 +266,9 @@ class EventHandler
                     $Order->setInvoiceAddress($User->getStandardAddress());
                 }
 
-                $Order->save($SystemUser);
+                if (method_exists($Order, 'save')) {
+                    $Order->save($SystemUser);
+                }
 
                 return;
             }
@@ -286,7 +289,10 @@ class EventHandler
 
             $Order->setCustomer($User);
             $Order->setInvoiceAddress($Address);
-            $Order->save($SystemUser);
+
+            if (method_exists($Order, 'save')) {
+                $Order->save($SystemUser);
+            }
         } catch (\Exception $exception) {
             QUI\System\Log::writeException($exception);
             QUI\System\Log::addError($exception->getMessage());
@@ -339,10 +345,10 @@ class EventHandler
      * @param AbstractOrder $Order
      * @return void
      */
-    public static function onQuiqqerOrderClear(AbstractOrder $Order)
+    public static function onQuiqqerOrderClear(AbstractOrder $Order): void
     {
         if (!GuestOrder::isActive()) {
-            return null;
+            return;
         }
 
         if (!QUI::isFrontend()) {
@@ -363,6 +369,10 @@ class EventHandler
         try {
             $SessionUser = QUI::getUserBySession();
             $Handler = QUI\ERP\Order\Handler::getInstance();
+
+            if (!method_exists($SessionUser, 'getGuestOrderId')) {
+                return;
+            }
 
             $guestOrderId = $SessionUser->getGuestOrderId();
             $orderId = $Order->getId();
@@ -534,10 +544,10 @@ class EventHandler
      * @return void
      * @throws Exception
      */
-    public static function extendMail(Collector $Collector, AbstractOrder $Order, array $Articles)
+    public static function extendMail(Collector $Collector, AbstractOrder $Order, array $Articles): void
     {
         if (!GuestOrder::isActive()) {
-            return null;
+            return;
         }
 
         // activated users do not need activation links
@@ -771,9 +781,12 @@ class EventHandler
         $Site = QUI::getRewrite()->getSite();
         $Site->setAttribute('short', '');
         $Site->setAttribute('type', 'standard');
-        $Site->setAttribute('meta.canonical', $Site->getUrlRewrittenWithHost());
         $Site->setAttribute('quiqqer.bricks.areas', '');
         $Site->setAttribute('content', $content);
+
+        if (method_exists($Site, 'getUrlRewrittenWithHost')) {
+            $Site->setAttribute('meta.canonical', $Site->getUrlRewrittenWithHost());
+        }
     }
 
     /**

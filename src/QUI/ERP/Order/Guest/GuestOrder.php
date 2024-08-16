@@ -274,7 +274,7 @@ class GuestOrder
         $User->save(QUI::getUsers()->getSystemUser());
 
         if (!$User->isActive()) {
-            $User->activate(false, QUI::getUsers()->getSystemUser());
+            $User->activate('', QUI::getUsers()->getSystemUser());
         }
 
         // send mail
