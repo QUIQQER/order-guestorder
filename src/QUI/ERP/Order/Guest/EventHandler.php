@@ -463,7 +463,7 @@ class EventHandler
         foreach ($steps as $Step) {
             if (
                 $Step instanceof QUI\ERP\Order\Controls\OrderProcess\CustomerData
-                || $Step instanceof QUI\ERP\Shipping\Order\Shipping
+                || class_exists('QUI\ERP\Shipping\Order\Shipping') && $Step instanceof QUI\ERP\Shipping\Order\Shipping
             ) {
                 continue;
             }
