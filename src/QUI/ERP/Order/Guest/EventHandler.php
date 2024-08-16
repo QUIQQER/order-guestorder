@@ -15,6 +15,7 @@ use QUI\Smarty\Collector;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+use function class_exists;
 use function count;
 use function date;
 use function floatval;
@@ -689,7 +690,10 @@ class EventHandler
      */
     protected static function onRequestInvoiceCreation(): void
     {
-        if (!QUI::getPackageManager()->isInstalled('quiqqer/invoice')) {
+        if (
+            !QUI::getPackageManager()->isInstalled('quiqqer/invoice')
+            || !class_exists('QUI\ERP\Accounting\Invoice\Utils\Invoice')
+        ) {
             self::redirectToMainSite();
         }
 
