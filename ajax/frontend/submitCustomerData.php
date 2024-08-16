@@ -88,13 +88,16 @@ QUI::$Ajax->registerFunction(
             ]);
         }
 
-        $missing = InvoiceUtils::getMissingAddressData($Address->getAttributes());
+        if (class_exists('QUI\ERP\Accounting\Invoice\Utils\Invoice')) {
+            $missing = InvoiceUtils::getMissingAddressData($Address->getAttributes());
 
-        if (!empty($missing)) {
-            throw new QUI\Exception(
-                InvoiceUtils::getMissingAttributeMessage($missing[0])
-            );
+            if (!empty($missing)) {
+                throw new QUI\Exception(
+                    InvoiceUtils::getMissingAttributeMessage($missing[0])
+                );
+            }
         }
+
 
         // all is fine, we can create the users
         $email = $Customer->getAttribute('email');
@@ -133,7 +136,11 @@ QUI::$Ajax->registerFunction(
             ->getConfig()
             ->getValue('guestorder', 'invoicing_for_guests');
 
-        if ($guestInvoicing) {
+        if (
+            $guestInvoicing
+            && class_exists('QUI\ERP\Accounting\Invoice\InvoiceTemporary')
+            && class_exists('QUI\ERP\Accounting\Invoice\Invoice')
+        ) {
             if ($Order->hasInvoice()) {
                 $Invoice = $Order->getInvoice();
             } else {
