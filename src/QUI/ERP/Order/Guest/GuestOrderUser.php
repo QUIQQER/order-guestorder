@@ -135,11 +135,18 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         return false;
     }
 
-    /**
-     * @todo
-     */
     public function isCompany(): bool
     {
+        if ($this->getAttribute('isCompany')) {
+            return true;
+        }
+
+        $Address = $this->getStandardAddress();
+
+        if ($Address->getAttribute('company')) {
+            return true;
+        }
+
         return false;
     }
 
