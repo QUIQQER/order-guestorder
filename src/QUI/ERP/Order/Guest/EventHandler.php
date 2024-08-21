@@ -244,12 +244,16 @@ class EventHandler
             $SystemUser = QUI::getUsers()->getSystemUser();
             $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
+            $Articles = $Order->getArticles();
+            $oldPriceFactors = $Articles->getPriceFactors()->toArray();
+
             if (empty($_REQUEST['guest-order-create-account'])) {
                 // create normal account
                 if (QUI::getUsers()->usernameExists($email)) {
                     // user already exists
                     $User = QUI::getUsers()->getUserByName($email);
                     $Order->setCustomer($User);
+                    $Order->setInvoiceAddress($User->getStandardAddress());
                 } elseif (GuestOrder::isAnonymousOrder()) {
                     $GuestUser->setAttribute('email', $email);
                     $Order->setCustomer($GuestUser);
@@ -260,7 +264,20 @@ class EventHandler
                     $Order->setInvoiceAddress($User->getStandardAddress());
                 }
 
-                $Order->save($SystemUser);
+                // set old prices factors, because of setCustomer strange behaviour
+                foreach ($Order->getArticles()->getPriceFactors() as $k => $PriceFactor) {
+                    $Order->getArticles()->getPriceFactors()->removeFactor($k);
+                }
+
+                foreach ($oldPriceFactors as $priceFactor) {
+                    $Order->getArticles()->addPriceFactor(
+                        new QUI\ERP\Accounting\PriceFactors\Factor($priceFactor)
+                    );
+                }
+
+                if (method_exists($Order, 'save')) {
+                    $Order->save($SystemUser);
+                }
 
                 return;
             }
