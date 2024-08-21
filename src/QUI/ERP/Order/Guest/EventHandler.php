@@ -191,12 +191,15 @@ class EventHandler
                 $status = (int)Settings::getInstance()->get('orderStatus', 'standard');
             }
 
+            $ErpUser = QUI\ERP\User::convertUserToErpUser($SessionUser);
+
             QUI::getDataBase()->insert($Handler->tableOrderProcess(), [
                 'id_prefix' => QUI\ERP\Order\Utils\Utils::getOrderPrefix(),
                 'c_user' => $sessId,
                 'c_date' => date('Y-m-d H:i:s'),
                 'hash' => QUI\Utils\Uuid::get(),
                 'customerId' => $sessId,
+                'customer' => json_encode($ErpUser->getAttributes()),
                 'status' => $status,
                 'paid_status' => QUI\ERP\Constants::PAYMENT_STATUS_OPEN,
                 'successful' => 0,
@@ -250,12 +253,16 @@ class EventHandler
             $SystemUser = QUI::getUsers()->getSystemUser();
             $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
+            $Articles = $Order->getArticles();
+            $oldPriceFactors = $Articles->getPriceFactors()->toArray();
+
             if (empty($_REQUEST['guest-order-create-account'])) {
                 // create normal account
                 if (QUI::getUsers()->usernameExists($email)) {
                     // user already exists
                     $User = QUI::getUsers()->getUserByName($email);
                     $Order->setCustomer($User);
+                    $Order->setInvoiceAddress($User->getStandardAddress());
                 } elseif (GuestOrder::isAnonymousOrder()) {
                     $GuestUser->setAttribute('email', $email);
                     $Order->setCustomer($GuestUser);
@@ -264,6 +271,17 @@ class EventHandler
 
                     $Order->setCustomer($User);
                     $Order->setInvoiceAddress($User->getStandardAddress());
+                }
+
+                // set old prices factors, because of setCustomer strange behaviour
+                foreach ($Order->getArticles()->getPriceFactors() as $k => $PriceFactor) {
+                    $Order->getArticles()->getPriceFactors()->removeFactor($k);
+                }
+
+                foreach ($oldPriceFactors as $priceFactor) {
+                    $Order->getArticles()->addPriceFactor(
+                        new QUI\ERP\Accounting\PriceFactors\Factor($priceFactor)
+                    );
                 }
 
                 if (method_exists($Order, 'save')) {

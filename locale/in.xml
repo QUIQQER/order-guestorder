@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locales>
+    <groups name="quiqqer/order-guestorder" datatype="php,js">
+        <locale name="package.title">
+            <hi><![CDATA[टेक्स्ट: ecoyn - अतिथि आदेश]]></hi>
+        </locale>
+        <locale name="package.description">
+            <hi><![CDATA[टेक्स्ट: QUIQQER और ecoyn में अतिथि ऑर्डरिंग की क्षमता जोड़ता है।]]></hi>
+        </locale>
+        <locale name="order.create.account.message">
+            <hi><![CDATA[TEXT:
+            <span>एक ग्राहक खाता बनाएं: हां, मैं ग्राहक खाते के लाभ उठाना चाहता हूं।
+            सुविधाजनक आर्डर, तेज़ आर्डर ट्रैकिंग और विशेष ऑफर।</span>]]></hi>
+        </locale>
+        <locale name="guest.username">
+            <hi><![CDATA[पाठ: अतिथि]]></hi>
+        </locale>
+        <locale name="mail.is.already.registered">
+            <hi><![CDATA[
+            यह ईमेल हमारे सिस्टम में पहले से ही पंजीकृत है। कृपया अपने खाता डेटा के साथ लॉग इन करें।
+            ]]></hi>
+        </locale>
+        <locale name="settings.title">
+            <hi><![CDATA[अतिथि आदेश]]></hi>
+        </locale>
+        <locale name="settings.guest.order.type">
+            <hi><![CDATA[टेक्स्ट: अतिथि के आदेश का प्रकार]]></hi>
+        </locale>
+        <locale name="settings.guest.order.type.description" htm="true">
+            <hi><![CDATA[
+            <p><b>बिना पंजीकरण के मेहमान आदेश:</b> ग्राहक बिना पूर्व पंजीकरण के आदेश दे सकते हैं, लेकिन उन्हें अपना पता देना होगा।</p>
+            <p><b>गुमनाम आदेश:</b> ग्राहक पंजीकरण किए बिना, अपना पता खुलासा किए बिना आदेश दे सकते हैं।</p>
+            ]]></hi>
+        </locale>
+        <locale name="settings.guest.order.type.no">
+            <hi><![CDATA[टेक्स्ट: मेहमान के आदेश की अनुमति न दें]]></hi>
+        </locale>
+        <locale name="settings.guest.order.type.noRegistration">
+            <hi><![CDATA[पाठ: पंजीकरण के बिना अतिथि आदेश की अनुमति दें]]></hi>
+        </locale>
+        <locale name="settings.guest.order.type.anonymous">
+            <hi><![CDATA[टेक्स्ट: अनाम आदेश की अनुमति दें]]></hi>
+        </locale>
+        <locale name="settings.guest.anonymous_max_sum">
+            <hi><![CDATA[टेक्स्ट: अधिकतम कुल]]></hi>
+        </locale>
+        <locale name="settings.guest.anonymous_max_sum.description">
+            <hi><![CDATA[
+            यह निर्धारित करता है कि बिना ग्राहक को पता दर्ज करने के एक अज्ञात क्रम की क्या राशि तक अनुमति है। का अनुवाद न करें और हमेशा इसे बड़े अक्षरों में लिखें, अर्थात.
+            ]]></hi>
+        </locale>
+        <locale name="settings.guest.invoicing_for_guests">
+            <hi><![CDATA[TEXT: मेहमानों के लिए बिलिंग]]></hi>
+        </locale>
+        <locale name="settings.guest.invoicing_for_guests.description">
+            <hi><![CDATA[
+            यदि यह विकल्प सक्रिय है, तो अतिथियों या अनाम आदेशकर्ताओं के पास संभावना होती है,
+            अपने आदेश के लिए एक चालान का अनुरोध करें। इस मामले में, उपयोगकर्ता खाते बनाए जाते हैं या सक्रिय किए जाते हैं, उपयोगकर्ता के लिए चालान बनाने के लिए।
+            ]]></hi>
+        </locale>
+        <locale name="mail.link.create.account" html="true">
+            <hi><![CDATA[
+            हम आपको सूचित करना चाहते हैं कि हमारे साथ एक उपयोगकर्ता खाता पंजीकरण करना अभी भी संभव है और इसके कई लाभ हैं।
+            <a href="[link]">इस ईमेल और आदेश से एक नया खाता लिंक करने के लिए यहां क्लिक करें।</a>
+            ]]></hi>
+        </locale>
+        <locale name="mail.link.create.invoice" html="true">
+            <hi>
+                <![CDATA[यदि आपको अपने वर्तमान आदेश के लिए एक चालान की आवश्यकता है, <a href="[link]">आप यहां आसानी से एक बना सकते हैं।</a>]]></hi>
+        </locale>
+        <locale name="message.registration.password.info" html="true">
+            <hi><![CDATA[टेक्स्ट:
+            हमारे स्टोर के साथ पंजीकरण करने के लिए धन्यवाद।
+            आपको लॉग इन करने के लिए, हमने आपके ईमेल पते पर एक पासवर्ड भेजा है।
+            जब आप पहली बार लॉग इन करेंगे, तो आपसे अपना पासवर्ड अपडेट करने के लिए कहा जाएगा।]]></hi>
+        </locale>
+        <locale name="site.message.error" html="true">
+            <hi><![CDATA[
+            <h1>हमें खेद है, लेकिन एक त्रुटि हो गई है</h1>.
+            <p>दुर्भाग्यवश, जब आप हमारी वेबसाइट / ऐप का उपयोग कर रहे थे, तब एक अप्रत्याशित त्रुटि हुई।
+            हम असुविधा के लिए खेद करते हैं। कृपया हमसे संपर्क करें ताकि हम आपकी और मदद कर सकें।</p>
+            <p>आपकी समझ के लिए धन्यवाद।</p>
+            ]]></hi>
+        </locale>
+        <locale name="control.registration.terms_of_use.info" html="true">
+            <hi><![CDATA[
+            मैं आगे बढ़कर आदेश की पुष्टि करता हूं कि मैंने उपयोग की शर्तों और/या गोपनीयता नीति को पढ़ा है और मैं इससे सहमत हूं।
+            ]]></hi>
+        </locale>
+        <locale name="control.sign.up.terms_of_use_and_privacy_policy.label" html="true">
+            <hi><![CDATA[मैं आगे बढ़कर आदेश की पुष्टि करता हूं कि मैंने पढ़ा है और सहमत हूं
+            <a href="[termsOfUseUrl]">[termsOfUseSiteTitle]</a> और
+            <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a> से।]]></hi>
+        </locale>
+        <locale name="control.sign.up.terms_of_use.label" html="true">
+            <hi><![CDATA[मैं आगे बढ़कर आदेश की पुष्टि करता हूं कि मैंने पढ़ा है और सहमत हूं
+            <a href="[termsOfUseUrl]">[termsOfUseSiteTitle]</a> से।]]></hi>
+        </locale>
+        <locale name="control.sign.up.privacy_policy.label" html="true">
+            <hi><![CDATA[मैं आगे बढ़कर आदेश की पुष्टि करता हूं कि मैंने पढ़ा है और सहमत हूं
+            <a href="[privacyPolicyUrl]">[privacyPolicySiteTitle]</a> से।
+            यह सुनिश्चित करने के लिए का उपयोग करें।]]></hi>
+        </locale>
+        <locale name="message.active.account" html="true">
+            <hi><![CDATA[
+            इस ईमेल पते के तहत पहले से ही एक सक्रिय खाता मौजूद है। कृपया लॉग इन करें और यदि आवश्यक हो तो अपना सही पता डेटा दर्ज करें।
+            ]]></hi>
+        </locale>
+        <locale name="message.account.alreadyExists">
+            <hi><![CDATA[
+            हम आपको यह बताना चाहते हैं कि इस ईमेल पते के तहत आदेश हमारी सिस्टम में पहले से मौजूद हैं।
+            इस पते के साथ एक और आदेश को सक्षम करने के लिए, हमने आपको [email] पर एक सत्यापन लिंक भेजा है।
+            कृपया ईमेल में लिंक पर क्लिक करें या अपने आदेश के लिए एक और ईमेल पता का उपयोग करें।
+            ]]></hi>
+        </locale>
+        <locale name="mail.auth.subject">
+            <hi><![CDATA[टेक्स्ट: आपके अतिथि आदेश की प्रमाणीकरण]]></hi>
+        </locale>
+        <locale name="mail.auth.body" html="true">
+            <hi><![CDATA[
+            <h1>नमस्ते,</h1>
+            <p>हमारे उत्पादों में आपकी रुचि और आपके पिछले अतिथि आदेश के लिए ईमेल पते [email] पर धन्यवाद।</p>
+
+            <p>यह सुनिश्चित करने के लिए कि आपका नया आदेश सही तरीके से संसाधित किया जा सके, हमें आपके ईमेल पते की संक्षिप्त पुष्टि की आवश्यकता है।
+            कृपया अपने ईमेल पते की प्रमाणीकरण के लिए नीचे दिए गए लिंक पर क्लिक करें:</p>
+            <p><a href="[activationLink]">प्रमाणीकरण लिंक डालें</a>.</p>
+
+            <p>एक बार जब आप लिंक पर क्लिक करते हैं, तो आपका ईमेल पता सत्यापित हो जाएगा और आप अपने आदेश के साथ सीधे आगे बढ़ सकते हैं।
+            यदि आप एक और आदेश देना नहीं चाहते हैं या आपको
+            ]]></hi>
+        </locale>
+        <locale name="message.registration_success">
+            <hi><![CDATA[
+            आपका ईमेल पता सफलतापूर्वक सत्यापित हो गया है। अब आप अपने आदेश के साथ आगे बढ़ सकते हैं।
+            आप कुछ ही सेकंडों में स्वतः आदेश पृष्ठ पर पुनः निर्देशित किए जाएंगे।
+            ]]></hi>
+        </locale>
+        <locale name="message.guest.sendInvoice.thanks">
+            <hi><![CDATA[टेक्स्ट: बहुत बहुत धन्यवाद! आपका डाटा सफलतापूर्वक सहेजा गया है।]]></hi>
+        </locale>
+        <locale name="message.guest.sendInvoice.invoiceSuccessful">
+            <hi><![CDATA[आपके ईमेल पते पर एक चालान भेजा गया है। कृपया अपना मेलबॉक्स जांचें।]]></hi>
+        </locale>
+        <locale name="message.guest.sendInvoice.accountCreation">
+            <hi><![CDATA[टेक्स्ट:
+            हमारे स्टोर में अपना खाता बनाने के लिए धन्यवाद! हमने आपको एक ईमेल भेजा है ताकि आप अपने खाता पंजीकरण को पूरा कर सकें।
+            कृपया इस प्रक्रिया को पूरा करने के लिए अपना इनबॉक्स जांचें।]]></hi>
+        </locale>
+        <locale name="message.guest.sendInvoice.error">
+            <hi><![CDATA[
+            दुर्भाग्यवश, एक त्रुटि हुई और कार्रवाई को नहीं किया जा सका।
+            कृपया स्टोर ऑपरेटर से संपर्क करें
+            ]]></hi>
+        </locale>
+    </groups>
+    <groups name="quiqqer/order-guestorder" datatype="php">
+        <locale name="control.guestOrderButton.header">
+            <hi><![CDATA[TEXT: अतिथि के रूप में आदेश दें]]></hi>
+        </locale>
+        <locale name="control.guestOrderButton.button">
+            <hi><![CDATA[टेक्स्ट: अतिथि के रूप में जारी रखें]]></hi>
+        </locale>
+        <locale name="control.guestOrderButton.next">
+            <hi><![CDATA[टेक्स्ट: अगला]]></hi>
+        </locale>
+        <locale name="control.guestOrderButton.info">
+            <hi><![CDATA[
+            <p>अपना ऑर्डर देने के लिए, हमें आपका ईमेल पता चाहिए। एक बार जब आप इसे प्रदान करते हैं,
+            तो आप आसानी से एक मेहमान के रूप में आगे बढ़ सकते हैं और अपना ऑर्डर पूरा कर सकते हैं।</p>
+            ]]></hi>
+        </locale>
+        <locale name="control.missingAddressData.header">
+            <hi><![CDATA[पाठ: अदृश्य पता डेटा]]></hi>
+        </locale>
+        <locale name="control.missingAddressData.text">
+            <hi><![CDATA[
+            <p>आपको उचित रूप से चालान जारी करने के लिए, हम आपसे अनुरोध करते हैं कि आप अपनी पता जानकारी को सावधानीपूर्वक दर्ज करें।</p>
+            ]]></hi>
+        </locale>
+        <locale name="settings.guest.prevent_duplicate_guest_order_registration">
+            <hi><![CDATA[टेक्स्ट: पुनरावृत्ति अतिथि आदेशों के लिए डुप्लिकेट पंजीकरण से बचना]]></hi>
+        </locale>
+        <locale name="settings.guest.prevent_duplicate_guest_order_registration.description">
+            <hi><![CDATA[TEXT:
+            <p>इस विकल्प के साथ, आप बिना पुनः पंजीकरण किए हुए मेहमानों से आवर्ती आदेशों को सीधे मौजूदा ग्राहक खाते के लिए आवंटित कर सकते हैं।
+            यदि यह सुविधा सक्रिय है, तो पहले से ज्ञात ईमेल पते के साथ दिए गए आदेश स्वचालित रूप से संबंधित ग्राहक खाते में जोड़ दिए जाएंगे।
+            यह हर नए आदेश के लिए एक नया खाता बनाने से रोकता है और
+            वापस आने वाले मेहमानों के लिए आदेश प्रक्रिया को सरल बनाता है और ग्राहक खाता प्रबंधन को अधिक कुशल बनाता है।</p>
+
+            <p>कृपया ध्यान दें कि यह सेटिंग विशेष रूप से उपयोगी है यदि फ्रंट-एंड ग]]></hi>
+        </locale>
+    </groups>
+</locales>
