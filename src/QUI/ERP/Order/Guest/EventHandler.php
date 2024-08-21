@@ -274,7 +274,7 @@ class EventHandler
                 }
 
                 // set old prices factors, because of setCustomer strange behaviour
-                foreach($Order->getArticles()->getPriceFactors() as $k => $PriceFactor) {
+                foreach ($Order->getArticles()->getPriceFactors() as $k => $PriceFactor) {
                     $Order->getArticles()->getPriceFactors()->removeFactor($k);
                 }
 
