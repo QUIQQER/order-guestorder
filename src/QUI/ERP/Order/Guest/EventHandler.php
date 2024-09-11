@@ -557,12 +557,12 @@ class EventHandler
      *
      * @param Collector $Collector - The mail content collector
      * @param AbstractOrder $Order - The order object
-     * @param array $Articles - The order articles
+     * @param mixed $Articles - The order articles
      *
      * @return void
      * @throws Exception
      */
-    public static function extendMail(Collector $Collector, AbstractOrder $Order, array $Articles): void
+    public static function extendMail(Collector $Collector, AbstractOrder $Order, mixed $Articles): void
     {
         if (!GuestOrder::isActive()) {
             return;
