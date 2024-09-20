@@ -247,6 +247,10 @@ class EventHandler
             $Articles = $Order->getArticles();
             $oldPriceFactors = $Articles->getPriceFactors()->toArray();
 
+            $Order->addComment(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.order.type')
+            );
+
             if (empty($_REQUEST['guest-order-create-account'])) {
                 // create normal account
                 if (QUI::getUsers()->usernameExists($email)) {
