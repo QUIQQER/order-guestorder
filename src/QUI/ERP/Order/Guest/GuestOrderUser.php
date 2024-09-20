@@ -20,6 +20,15 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         if (empty($firstname)) {
             $this->setAttribute('firstname', 'Gast');
         }
+
+
+        if (!$this->getAttribute('email')) {
+            $email = QUI::getSession()->get(GuestOrder::EMAIL);
+
+            if (!empty($email)) {
+                $this->setAttribute('email', $email);
+            }
+        }
     }
 
     public function getId(): int
