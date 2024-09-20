@@ -294,6 +294,10 @@
     </groups>
 
     <groups name="quiqqer/order-guestorder" datatype="php">
+        <locale name="message.guest.order.type">
+            <de><![CDATA[Dies ist eine Gastbestellung]]></de>
+            <en><![CDATA[This is a guest order]]></en>
+        </locale>
         <locale name="control.guestOrderButton.header">
             <de><![CDATA[Als Gast bestellen]]></de>
             <en><![CDATA[Order as guest]]></en>
