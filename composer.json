@@ -21,7 +21,8 @@
   "require": {
     "php": "^8.1",
     "quiqqer/core": "^2",
-    "quiqqer/order": "^2.5"
+    "quiqqer/order": "^2.5",
+    "quiqqer/verification": "^3"
   },
   "autoload": {
     "psr-4": {

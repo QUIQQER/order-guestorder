@@ -3,24 +3,25 @@
 namespace QUI\ERP\Order\Guest;
 
 use QUI;
-use QUI\Verification\AbstractVerification;
+use QUI\Verification\Entity\LinkVerification;
+use QUI\Verification\Enum\VerificationErrorReason;
 
 /**
- * Wenn doppelt bestellt wurde
- * Muss die Mail verifiziert werden
+ * Wenn doppelt bestellt wurde,
+ * muss die Mail verifiziert werden
  */
-class EmailVerification extends AbstractVerification
+class EmailVerification extends QUI\FrontendUsers\EmailVerification
 {
-    public function onSuccess(): void
+    public function onSuccess(LinkVerification $verification): void
     {
         GuestOrder::setGuestOrderFlag();
     }
 
-    public function onError(): void
+    public function onError(LinkVerification $verification, VerificationErrorReason $reason): void
     {
     }
 
-    public function getSuccessMessage(): string
+    public function getSuccessMessage(LinkVerification $verification): string
     {
         try {
             $orderLink = QUI\ERP\Order\Utils\Utils::getOrderProcess(QUI::getRewrite()->getProject())->getUrlRewritten();
@@ -36,7 +37,7 @@ class EmailVerification extends AbstractVerification
             </script>";
     }
 
-    public function getErrorMessage($reason): string
+    public function getErrorMessage(LinkVerification $verification, $reason): string
     {
         return QUI::getLocale()->get('quiqqer/frontend-users', 'message.registration_error');
     }
