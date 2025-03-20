@@ -4,6 +4,7 @@ namespace QUI\ERP\Order\Guest;
 
 use Exception;
 use QUI;
+use QUI\FrontendUsers\EmailVerification;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
 use QUI\Mail\Mailer;
 use QUI\Projects\Project;
@@ -143,19 +144,27 @@ class GuestOrder
      * @return void
      * @throws QUI\Exception
      * @throws QUI\Verification\Exception
+     * @throws \DateMalformedStringException
      */
-    public static function sendEmailVerification(string $email, QUI\Projects\Project $Project = null): void
+    public static function sendEmailVerification(string $email, null | QUI\Projects\Project $Project = null): void
     {
         if ($Project === null) {
             $Project = QUI::getRewrite()->getProject();
         }
 
-        $ActivationVerification = new EmailVerification($email, [
-            'project' => $Project->getName(),
-            'projectLang' => $Project->getLang()
-        ]);
+        $verificationFactory = new QUI\Verification\VerificationFactory();
+        $verification = $verificationFactory->createLinkVerification(
+            'confirmemail-' . QUI::getUserBySession()->getUUID(),
+            new EmailVerification(),
+            [
+                'uuid' => QUI::getUserBySession()->getUUID(),
+                'project' => $Project->getName(),
+                'projectLang' => $Project->getLang(),
+                'email' => $email
+            ]
+        );
 
-        $activationLink = QUI\Verification\Verifier::startVerification($ActivationVerification, true);
+        $activationLink = $verification->getVerificationUrl();
         $Formatter = QUI::getLocale()->getDateFormatter();
 
         $localeParams = [
