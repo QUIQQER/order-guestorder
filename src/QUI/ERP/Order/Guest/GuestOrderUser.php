@@ -82,6 +82,11 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         $this->setAttribute('isCompany', $status);
     }
 
+    public function logout()
+    {
+        QUI::getSession()->destroy();
+    }
+
     //endregion
 
     //region address
