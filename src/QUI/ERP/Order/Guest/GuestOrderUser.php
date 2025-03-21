@@ -40,7 +40,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         return 6;
     }
 
-    public function getUUID(): string|int
+    public function getUUID(): string | int
     {
         if (!QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)) {
             QUI::getSession()->set(
