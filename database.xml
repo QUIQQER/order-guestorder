@@ -3,6 +3,7 @@
     <global>
         <table name="orders_process">
             <field type="VARCHAR(250) NULL DEFAULT NULL">guestOrder</field>
+            <index>guestOrder</index>
         </table>
     </global>
 </database>
