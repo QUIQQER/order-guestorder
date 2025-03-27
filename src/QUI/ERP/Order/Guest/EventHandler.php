@@ -190,7 +190,18 @@ class EventHandler
                             QUI::getSession()->set(GuestOrder::CUSTOMER_UUID, $Customer->getUUID());
                             QUI::getSession()->set(GuestOrder::CUSTOMER_ID, $Customer->getId());
 
-                            return $Order;
+                            $table = $Handler->table();
+                            if ($Order instanceof QUI\ERP\Order\OrderInProcess) {
+                                $table = $Handler->tableOrderProcess();
+                            }
+
+                            QUI::getDataBase()->update(
+                                $table,
+                                ['c_user' => QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)],
+                                ['hash' => $Order->getUUID()]
+                            );
+
+                            return $Handler->getOrderByHash($Order->getUUID());
                         }
                     } catch (\Exception) {
                     }
