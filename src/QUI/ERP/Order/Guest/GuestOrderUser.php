@@ -82,7 +82,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         $this->setAttribute('isCompany', $status);
     }
 
-    public function logout()
+    public function logout(): bool
     {
         QUI::getSession()->destroy();
     }
