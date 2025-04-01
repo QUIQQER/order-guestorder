@@ -136,6 +136,8 @@ class EventHandler
             isset($_REQUEST['step']) && $_REQUEST['step'] === 'Processing'
             || $OrderProcess->getAttribute('step') === 'Processing'
         ) {
+            $email = QUI::getSession()->get(GuestOrder::EMAIL);
+
             $result = QUI::getDataBase()->fetch([
                 'from' => $Handler->table(),
                 'where' => [
@@ -149,7 +151,6 @@ class EventHandler
             if (isset($result[0])) {
                 $customer = $result[0]['customer'];
                 $customer = json_decode($customer, true);
-                $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
                 if ($customer['email'] === $email) {
                     if (isset($customer['id'])) {
@@ -158,7 +159,43 @@ class EventHandler
 
                     try {
                         return $Handler->get($result[0]['id']);
-                    } catch (\Exception) {
+                    } catch (\Exception $exception) {
+                    }
+                }
+            } else {
+                // order is already in process status
+                // maybe payment error or async payment with error
+                // we have to get the current order via the url hash
+                // problem is, it could be an OrderInProcess or already an Order
+                if (isset($_REQUEST['orderHash'])) {
+                    try {
+                        $Order = $Handler->getOrderByHash($_REQUEST['orderHash']);
+                        $Customer = $Order->getCustomer();
+                        $Address = $Customer->getStandardAddress();
+                        $mailList = $Address->getMailList();
+                        $customerMail = null;
+
+                        if (!empty($mailList)) {
+                            $customerMail = $mailList[0];
+                        }
+
+                        if ($customerMail === $email) {
+                            QUI::getSession()->set(GuestOrder::CUSTOMER_ID, $Customer->getId());
+
+                            $table = $Handler->table();
+                            if ($Order instanceof QUI\ERP\Order\OrderInProcess) {
+                                $table = $Handler->tableOrderProcess();
+                            }
+
+                            QUI::getDataBase()->update(
+                                $table,
+                                ['c_user' => QUI::getSession()->get(GuestOrder::CUSTOMER_ID)],
+                                ['id' => $Order->getId()]
+                            );
+
+                            return $Order;
+                        }
+                    } catch (\Exception $exception) {
                     }
                 }
             }
@@ -201,6 +238,17 @@ class EventHandler
         }
 
         try {
+            // maybe we have to set the customer uuid
+            // only if session exists
+            if (QUI::getSession()->get(GuestOrder::CUSTOMER_ID)) {
+                // cUser ändern
+                QUI::getDataBase()->update(
+                    $Handler->tableOrderProcess(),
+                    ['c_user' => QUI::getSession()->get(GuestOrder::CUSTOMER_ID)],
+                    ['id' => $orderId]
+                );
+            }
+
             return $Handler->getOrderInProcess($orderId);
         } catch (\Exception $exception) {
             return null;
@@ -343,7 +391,7 @@ class EventHandler
 
                 QUI::getSession()->set('guest-order-id', $Order->getId());
             }
-        } catch (\Exception) {
+        } catch (\Exception $exception) {
         }
     }
 
