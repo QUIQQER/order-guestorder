@@ -11,6 +11,9 @@
     <event on="onQuiqqerOrderProcessingStart" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderProcessSend"/>
     <event on="onQuiqqerOrderCreated" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerOrderCreated"/>
 
+    <event on="onQuiqqerSimpleCheckoutBodyEnd" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerSimpleCheckoutBodyEnd"/>
+    <event on="onQuiqqerSimpleCheckoutValidation" fire="\QUI\ERP\Order\Guest\EventHandler::onQuiqqerSimpleCheckoutValidation"/>
+
     <event on="onQuiqqer::order::orderProcessCheckoutEnd" fire="\QUI\ERP\Order\Guest\EventHandler::extendCheckout"/>
     <event on="onQuiqqer::order::mail::orderConfirmation::end" fire="\QUI\ERP\Order\Guest\EventHandler::extendMail"/>
 </events>

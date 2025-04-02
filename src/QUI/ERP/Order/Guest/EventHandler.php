@@ -543,6 +543,89 @@ class EventHandler
         }
     }
 
+    public static function onQuiqqerSimpleCheckoutBodyEnd(
+        QUI\ERP\Order\SimpleCheckout\Checkout $checkout,
+        bool &$showDelivery,
+        bool &$showShipping,
+        bool &$showBillingAddress
+    ): void {
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        if (!GuestOrder::isAnonymousOrder()) {
+            return;
+        }
+
+        try {
+            $order = $checkout->getOrder();
+        } catch (QUI\Exception) {
+            return;
+        }
+
+        if (!$order) {
+            return;
+        }
+
+        $calculations = $order->getArticles()->getCalculations();
+        $sum = $calculations['sum'];
+
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'anonymous_max_sum'
+        );
+
+        $maxTotal = floatval($maxTotal);
+
+        if (!empty($maxTotal) && $sum > $maxTotal) {
+            return;
+        }
+
+        $showDelivery = false;
+        $showShipping = false;
+        $showBillingAddress = false;
+    }
+
+    public static function onQuiqqerSimpleCheckoutValidation(
+        QUI\ERP\Order\SimpleCheckout\Checkout $checkout,
+        bool &$validateAddress,
+        bool &$validateShipping
+    ): void {
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        if (!GuestOrder::isAnonymousOrder()) {
+            return;
+        }
+
+        try {
+            $order = $checkout->getOrder();
+        } catch (QUI\Exception) {
+            return;
+        }
+
+        if (!$order) {
+            return;
+        }
+
+        $calculations = $order->getArticles()->getCalculations();
+        $sum = $calculations['sum'];
+
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'anonymous_max_sum'
+        );
+
+        $maxTotal = floatval($maxTotal);
+
+        if (!empty($maxTotal) && $sum > $maxTotal) {
+            return;
+        }
+
+        $validateAddress = false;
+    }
+
     //endregion
 
     //region extend templates
