@@ -21,8 +21,12 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
             $this->setAttribute('firstname', 'Gast');
         }
 
+        $this->readEmail();
+    }
 
-        if (!$this->getAttribute('email')) {
+    protected function readEmail(): void
+    {
+        if (empty($this->getAttribute('email'))) {
             $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
             if (!empty($email)) {
@@ -130,7 +134,16 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
             }
         }
 
-        return new QUI\ERP\Address($address, $this);
+        $addressInstance = new QUI\ERP\Address($address, $this);
+
+        try {
+            $this->readEmail();
+            $addressInstance->addMail($this->getAttribute('email'));
+        } catch (QUI\Exception $e) {
+            QUI\System\Log::addError($e->getMessage());
+        }
+
+        return $addressInstance;
     }
 
     //endregion

@@ -543,6 +543,105 @@ class EventHandler
         }
     }
 
+    public static function onQuiqqerSimpleCheckoutBodyEnd(
+        mixed $checkout,
+        bool &$showDelivery,
+        bool &$showShipping,
+        bool &$showBillingAddress
+    ): void {
+        if (!class_exists('QUI\ERP\Order\SimpleCheckout\Checkout')) {
+            return;
+        }
+
+        if (!($checkout instanceof QUI\ERP\Order\SimpleCheckout\Checkout)) {
+            return;
+        }
+
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        if (!GuestOrder::isAnonymousOrder()) {
+            return;
+        }
+
+        try {
+            $order = $checkout->getOrder();
+        } catch (QUI\Exception) {
+            return;
+        }
+
+        if (!$order) {
+            return;
+        }
+
+        $calculations = $order->getArticles()->getCalculations();
+        $sum = $calculations['sum'];
+
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'anonymous_max_sum'
+        );
+
+        $maxTotal = floatval($maxTotal);
+
+        if (!empty($maxTotal) && $sum > $maxTotal) {
+            return;
+        }
+
+        $showDelivery = false;
+        $showShipping = false;
+        $showBillingAddress = false;
+    }
+
+    public static function onQuiqqerSimpleCheckoutValidation(
+        mixed $checkout,
+        bool &$validateAddress,
+        bool &$validateShipping
+    ): void {
+        if (!class_exists('QUI\ERP\Order\SimpleCheckout\Checkout')) {
+            return;
+        }
+
+        if (!($checkout instanceof QUI\ERP\Order\SimpleCheckout\Checkout)) {
+            return;
+        }
+
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        if (!GuestOrder::isAnonymousOrder()) {
+            return;
+        }
+
+        try {
+            $order = $checkout->getOrder();
+        } catch (QUI\Exception) {
+            return;
+        }
+
+        if (!$order) {
+            return;
+        }
+
+        $calculations = $order->getArticles()->getCalculations();
+        $sum = $calculations['sum'];
+
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+            'guestorder',
+            'anonymous_max_sum'
+        );
+
+        $maxTotal = floatval($maxTotal);
+
+        if (!empty($maxTotal) && $sum > $maxTotal) {
+            return;
+        }
+
+        $validateAddress = false;
+    }
+
     //endregion
 
     //region extend templates
