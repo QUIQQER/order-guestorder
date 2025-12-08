@@ -22,7 +22,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         }
 
 
-        if (!$this->getAttribute('email')) {
+        if (empty($this->getAttribute('email'))) {
             $email = QUI::getSession()->get(GuestOrder::EMAIL);
 
             if (!empty($email)) {
@@ -130,7 +130,14 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
             }
         }
 
-        return new QUI\ERP\Address($address, $this);
+        $addressInstance = new QUI\ERP\Address($address, $this);
+
+        try {
+            $addressInstance->addMail($this->getAttribute('email'));
+        } catch (QUI\Exception) {
+        }
+
+        return $addressInstance;
     }
 
     //endregion
