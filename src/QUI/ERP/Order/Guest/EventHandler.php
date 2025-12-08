@@ -595,10 +595,18 @@ class EventHandler
     }
 
     public static function onQuiqqerSimpleCheckoutValidation(
-        QUI\ERP\Order\SimpleCheckout\Checkout $checkout,
+        mixed $checkout,
         bool &$validateAddress,
         bool &$validateShipping
     ): void {
+        if (!class_exists('QUI\ERP\Order\SimpleCheckout\Checkout')) {
+            return;
+        }
+
+        if (!($checkout instanceof QUI\ERP\Order\SimpleCheckout\Checkout)) {
+            return;
+        }
+
         if (!GuestOrder::isActive()) {
             return;
         }
