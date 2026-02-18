@@ -15,8 +15,7 @@ QUI::getAjax()->registerFunction(
     function ($email) {
         if (
             QUI::getPackage('quiqqer/order-guestorder')
-                ->getConfig()
-                ->get('guestorder', 'prevent_duplicate_guest_order_registration')
+                ->getConfig()?->get('guestorder', 'prevent_duplicate_guest_order_registration')
         ) {
             return -1;
         }

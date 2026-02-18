@@ -85,7 +85,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
             return QUI\Utils\Uuid::get();
         }
 
-        $orderGuestId = $Session?->get('guest-order-id');
+        $orderGuestId = $Session->get('guest-order-id');
 
         if (!empty($orderGuestId)) {
             return $orderGuestId;
@@ -130,7 +130,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     //region address
 
-    public function getAddress($id): QUI\ERP\Address
+    public function getAddress(int | string $id): QUI\ERP\Address
     {
         return $this->getStandardAddress();
     }
@@ -172,7 +172,10 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     //region getter
 
-    protected function getGuestOrderData()
+    /**
+     * @return array<string, mixed>|false
+     */
+    protected function getGuestOrderData(): false | array
     {
         $Handler = QUI\ERP\Order\Handler::getInstance();
         $guestId = $this->getGuestOrderId();

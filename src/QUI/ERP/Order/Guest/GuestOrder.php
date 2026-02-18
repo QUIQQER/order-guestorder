@@ -30,7 +30,7 @@ class GuestOrder
     public static function setGuestOrderFlag(): void
     {
         if (GuestOrder::isActive()) {
-            QUI::getSession()->set(self::FLAG, 1);
+            QUI::getSession()?->set(self::FLAG, 1);
         }
     }
 
@@ -41,7 +41,7 @@ class GuestOrder
     public static function removeGuestOrderFlag(): void
     {
         if (GuestOrder::isActive()) {
-            QUI::getSession()->remove(self::FLAG);
+            QUI::getSession()?->remove(self::FLAG);
         }
     }
 
@@ -54,7 +54,7 @@ class GuestOrder
     {
         try {
             $Package = QUI::getPackage('quiqqer/order-guestorder');
-            $type = $Package->getConfig()->getValue('guestorder', 'type');
+            $type = $Package->getConfig()?->getValue('guestorder', 'type');
 
             if (empty($type) || $type === 'no') {
                 return false;
@@ -77,7 +77,7 @@ class GuestOrder
     {
         try {
             $Package = QUI::getPackage('quiqqer/order-guestorder');
-            $type = $Package->getConfig()->getValue('guestorder', 'type');
+            $type = $Package->getConfig()?->getValue('guestorder', 'type');
 
             if (empty($type) || $type === 'no') {
                 return false;
@@ -104,13 +104,13 @@ class GuestOrder
     public static function getInvoiceCreationLink(QUI\ERP\Order\AbstractOrder $Order): string
     {
         $DefaultProject = QUI::getProjectManager()->getStandard();
-        $host = $DefaultProject->getVHost(true, true);
+        $host = $DefaultProject?->getVHost(true, true) ?? '/';
         $Customer = $Order->getCustomer();
 
         return $host . '/?' . http_build_query([
                 'guestorder' => 1,
                 't' => 'invoice',
-                'u' => $Customer->getAttribute('email'),
+                'u' => $Customer?->getAttribute('email') ?? '',
                 'o' => $Order->getUUID()
             ]);
     }
@@ -125,13 +125,13 @@ class GuestOrder
     public static function getAccountCreationLink(QUI\ERP\Order\AbstractOrder $Order): string
     {
         $DefaultProject = QUI::getProjectManager()->getStandard();
-        $host = $DefaultProject->getVHost(true, true);
+        $host = $DefaultProject?->getVHost(true, true) ?? '/';
         $Customer = $Order->getCustomer();
 
         return $host . '/?' . http_build_query([
                 'guestorder' => 1,
                 't' => 'account',
-                'u' => $Customer->getAttribute('email'),
+                'u' => $Customer?->getAttribute('email') ?? '',
                 'o' => $Order->getUUID()
             ]);
     }
@@ -158,8 +158,8 @@ class GuestOrder
             new EmailVerification(),
             [
                 'uuid' => QUI::getUserBySession()->getUUID(),
-                'project' => $Project->getName(),
-                'projectLang' => $Project->getLang(),
+                'project' => $Project?->getName() ?? '',
+                'projectLang' => $Project?->getLang() ?? '',
                 'email' => $email
             ]
         );
@@ -217,12 +217,12 @@ class GuestOrder
 
         try {
             if (QUI::getPackageManager()->isInstalled('quiqqer/customer')) {
-                $User->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
+                $User?->addToGroup(QUI\ERP\Customer\Customers::getInstance()->getCustomerGroupId());
             }
         } catch (QUI\Exception) {
         }
 
-        $User->save(QUI::getUsers()->getSystemUser());
+        $User?->save(QUI::getUsers()->getSystemUser());
 
         return $User;
     }
@@ -245,11 +245,11 @@ class GuestOrder
         // create user account -> guest user
         $User = QUI::getUsers()->createChild($email, $SystemUser);
         $DefaultAddr = $User->getStandardAddress();
-        $DefaultAddr->setAttributes($Address->getAttributes());
-        $DefaultAddr->save($SystemUser);
+        $DefaultAddr?->setAttributes($Address->getAttributes());
+        $DefaultAddr?->save($SystemUser);
 
-        $User->setAttribute('firstname', $DefaultAddr->getAttribute('firstname'));
-        $User->setAttribute('lastname', $DefaultAddr->getAttribute('lastname'));
+        $User->setAttribute('firstname', $DefaultAddr?->getAttribute('firstname') ?? '');
+        $User->setAttribute('lastname', $DefaultAddr?->getAttribute('lastname') ?? '');
         $User->setAttribute('email', $email);
 
         try {

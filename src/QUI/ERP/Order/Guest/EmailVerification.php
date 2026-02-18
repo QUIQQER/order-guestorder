@@ -24,7 +24,13 @@ class EmailVerification extends QUI\FrontendUsers\EmailVerification
     public function getSuccessMessage(LinkVerification $verification): string
     {
         try {
-            $orderLink = QUI\ERP\Order\Utils\Utils::getOrderProcess(QUI::getRewrite()->getProject())->getUrlRewritten();
+            $Project = QUI::getRewrite()->getProject();
+
+            if (!$Project) {
+                throw new QUI\Exception('No project available');
+            }
+
+            $orderLink = QUI\ERP\Order\Utils\Utils::getOrderProcess($Project)->getUrlRewritten();
         } catch (QUI\Exception) {
             $orderLink = '/';
         }
