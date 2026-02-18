@@ -9,6 +9,9 @@ use function class_exists;
 
 class MissingAddressData extends QUI\Control
 {
+    /**
+     * @param array<string, mixed> $attributes
+     */
     public function __construct(array $attributes = [])
     {
         $this->setAttributes([
@@ -48,10 +51,10 @@ class MissingAddressData extends QUI\Control
 
         $Engine->assign([
             'orderHash' => $Order->getUUID(),
-            'email' => $Order->getCustomer()->getAttribute('email'),
+            'email' => $Customer?->getAttribute('email') ?? '',
             'missing' => $missing,
             'CustomerData' => $CustomerData,
-            'showAccountCreation' => $Customer->getUUID() === $Guest->getUUID()
+            'showAccountCreation' => $Customer && $Customer->getUUID() === $Guest->getUUID()
         ]);
 
         return $Engine->fetch(dirname(__FILE__) . '/MissingAddressData.html');

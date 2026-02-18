@@ -11,6 +11,14 @@ use function json_decode;
  */
 class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\User
 {
+    /**
+     * @return QUI\Session|QUI\System\Console\Session|null
+     */
+    protected function getSessionInstance(): QUI\Session | QUI\System\Console\Session | null
+    {
+        return QUI::getSession();
+    }
+
     public function __construct()
     {
         parent::__construct();
@@ -27,7 +35,7 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
     protected function readEmail(): void
     {
         if (empty($this->getAttribute('email'))) {
-            $email = QUI::getSession()->get(GuestOrder::EMAIL);
+            $email = $this->getSessionInstance()?->get(GuestOrder::EMAIL);
 
             if (!empty($email)) {
                 $this->setAttribute('email', $email);
@@ -37,8 +45,10 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     public function getId(): int
     {
-        if ((int)QUI::getSession()->get(GuestOrder::CUSTOMER_ID)) {
-            return (int)QUI::getSession()->get(GuestOrder::CUSTOMER_ID);
+        $customerId = (int)($this->getSessionInstance()?->get(GuestOrder::CUSTOMER_ID) ?? 0);
+
+        if ($customerId) {
+            return $customerId;
         }
 
         return 6;
@@ -46,14 +56,20 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     public function getUUID(): string | int
     {
-        if (!QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)) {
-            QUI::getSession()->set(
+        $Session = $this->getSessionInstance();
+
+        if (!$Session) {
+            return 6;
+        }
+
+        if (!$Session->get(GuestOrder::CUSTOMER_UUID)) {
+            $Session->set(
                 GuestOrder::CUSTOMER_UUID,
                 QUI\Utils\Uuid::get()
             );
         }
 
-        return QUI::getSession()->get(GuestOrder::CUSTOMER_UUID);
+        return $Session->get(GuestOrder::CUSTOMER_UUID);
     }
 
     public function getUniqueId(): string
@@ -63,14 +79,20 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     public function getGuestOrderId(): string
     {
-        $orderGuestId = QUI::getSession()->get('guest-order-id');
+        $Session = $this->getSessionInstance();
+
+        if (!$Session) {
+            return QUI\Utils\Uuid::get();
+        }
+
+        $orderGuestId = $Session->get('guest-order-id');
 
         if (!empty($orderGuestId)) {
             return $orderGuestId;
         }
 
         $orderGuestId = QUI\Utils\Uuid::get();
-        QUI::getSession()->set('guest-order-id', $orderGuestId);
+        $Session->set('guest-order-id', $orderGuestId);
 
         return $orderGuestId;
     }
@@ -101,14 +123,14 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     public function logout(): void
     {
-        QUI::getSession()->destroy();
+        $this->getSessionInstance()?->destroy();
     }
 
     //endregion
 
     //region address
 
-    public function getAddress($id): QUI\ERP\Address
+    public function getAddress(int | string $id): QUI\ERP\Address
     {
         return $this->getStandardAddress();
     }
@@ -150,7 +172,10 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
 
     //region getter
 
-    protected function getGuestOrderData()
+    /**
+     * @return array<string, mixed>|false
+     */
+    protected function getGuestOrderData(): false | array
     {
         $Handler = QUI\ERP\Order\Handler::getInstance();
         $guestId = $this->getGuestOrderId();

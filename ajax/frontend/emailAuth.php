@@ -6,7 +6,7 @@
 
 use QUI\ERP\Order\Guest\GuestOrder;
 
-QUI::$Ajax->registerFunction(
+QUI::getAjax()->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_emailAuth',
     function ($email) {
         GuestOrder::sendEmailVerification($email);

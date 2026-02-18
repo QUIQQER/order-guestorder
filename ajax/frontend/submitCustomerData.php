@@ -4,7 +4,6 @@
  * This file contains package_quiqqer_order-guestorder_ajax_frontend_setCustomerData
  */
 
-use QUI\ERP\Accounting\Invoice\Invoice;
 use QUI\ERP\Accounting\Invoice\InvoiceTemporary;
 use QUI\ERP\Accounting\Invoice\Utils\Invoice as InvoiceUtils;
 use QUI\ERP\Order\Guest\GuestOrder;
@@ -12,13 +11,19 @@ use QUI\ERP\Order\Guest\GuestOrderUser;
 use QUI\ERP\Order\Handler;
 use QUI\System\Log;
 
-QUI::$Ajax->registerFunction(
+QUI::getAjax()->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_submitCustomerData',
     function ($orderHash, $data) {
         $Order = Handler::getInstance()->getOrderByHash($orderHash);
         $data = json_decode($data, true);
         $Customer = $Order->getCustomer();
         $Guest = new GuestOrderUser();
+
+        if (!$Customer) {
+            throw new QUI\Exception(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+            );
+        }
 
         if (empty($data['order-guest-email'])) {
             throw new QUI\Exception(
@@ -114,6 +119,12 @@ QUI::$Ajax->registerFunction(
                     QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.accountCreation') .
                     '</p>';
 
+                if (!$User) {
+                    throw new QUI\Exception(
+                        QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+                    );
+                }
+
                 // frontend users don't set a password
                 GuestOrder::sendNewPasswordMail($User);
             } else {
@@ -127,14 +138,19 @@ QUI::$Ajax->registerFunction(
             );
         }
 
+        if (!$User) {
+            throw new QUI\Exception(
+                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+            );
+        }
+
         $Order->setCustomer($User);
         $Order->setInvoiceAddress($Address);
         $Order->save(QUI::getUsers()->getSystemUser());
 
 
         $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')
-            ->getConfig()
-            ->getValue('guestorder', 'invoicing_for_guests');
+            ->getConfig()?->getValue('guestorder', 'invoicing_for_guests');
 
         if (
             $guestInvoicing
@@ -144,6 +160,12 @@ QUI::$Ajax->registerFunction(
             if ($Order->hasInvoice()) {
                 $Invoice = $Order->getInvoice();
             } else {
+                if (!($Order instanceof QUI\ERP\Order\Order)) {
+                    throw new QUI\Exception(
+                        QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
+                    );
+                }
+
                 $Invoice = $Order->createInvoice(QUI::getUsers()->getSystemUser());
             }
 
@@ -151,9 +173,7 @@ QUI::$Ajax->registerFunction(
                 $Invoice = $Invoice->post(QUI::getUsers()->getSystemUser());
             }
 
-            if ($Invoice instanceof Invoice) {
-                $Invoice->sendTo($email);
-            }
+            $Invoice->sendTo($email);
 
             $message .= '<p>' .
                 QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.invoiceSuccessful') .

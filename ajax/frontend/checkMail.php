@@ -10,13 +10,12 @@
  * -1 = no user exists
  */
 
-QUI::$Ajax->registerFunction(
+QUI::getAjax()->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_checkMail',
     function ($email) {
         if (
             QUI::getPackage('quiqqer/order-guestorder')
-                ->getConfig()
-                ->get('guestorder', 'prevent_duplicate_guest_order_registration')
+                ->getConfig()?->get('guestorder', 'prevent_duplicate_guest_order_registration')
         ) {
             return -1;
         }

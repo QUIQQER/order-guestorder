@@ -6,16 +6,15 @@
 
 use QUI\ERP\Order\Guest\GuestOrder;
 
-QUI::$Ajax->registerFunction(
+QUI::getAjax()->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_orderAsGuest',
     function ($email) {
         $alwaysGuestAllowed = QUI::getPackage('quiqqer/order-guestorder')
-            ->getConfig()
-            ->get('guestorder', 'prevent_duplicate_guest_order_registration');
+            ->getConfig()?->get('guestorder', 'prevent_duplicate_guest_order_registration');
 
         if ($alwaysGuestAllowed) {
             // set guest session
-            QUI::getSession()->set(GuestOrder::EMAIL, $email);
+            QUI::getSession()?->set(GuestOrder::EMAIL, $email);
             GuestOrder::setGuestOrderFlag();
             return;
         }
@@ -39,7 +38,7 @@ QUI::$Ajax->registerFunction(
         }
 
         // set guest session
-        QUI::getSession()->set(GuestOrder::EMAIL, $email);
+        QUI::getSession()?->set(GuestOrder::EMAIL, $email);
         GuestOrder::setGuestOrderFlag();
     },
     ['email']
