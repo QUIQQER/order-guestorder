@@ -10,7 +10,7 @@
  * -1 = no user exists
  */
 
-QUI::$Ajax->registerFunction(
+QUI::getAjax()->registerFunction(
     'package_quiqqer_order-guestorder_ajax_frontend_checkMail',
     function ($email) {
         if (
