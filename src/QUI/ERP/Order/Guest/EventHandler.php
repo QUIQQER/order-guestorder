@@ -288,6 +288,37 @@ class EventHandler
             return;
         }
 
+        self::assignGuestOrderCustomer($Order);
+    }
+
+    /**
+     * Assign customer before OrderInProcess->createOrder() runs.
+     * This avoids invoice validation with unresolved guest session users.
+     */
+    public static function onQuiqqerOrderProcessSendCreateOrder(OrderProcess $OrderProcess): void
+    {
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        try {
+            $Order = $OrderProcess->getOrder();
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError($Exception->getMessage(), [
+                'event' => 'onQuiqqerOrderProcessSendCreateOrder'
+            ]);
+
+            return;
+        }
+
+        self::assignGuestOrderCustomer($Order);
+    }
+
+    /**
+     * @param AbstractOrder $Order
+     */
+    protected static function assignGuestOrderCustomer(AbstractOrder $Order): void
+    {
         $Customer = $Order->getCustomer();
         $GuestUser = new GuestOrderUser();
 
