@@ -12,6 +12,9 @@ use function dirname;
  */
 class GuestOrderButton extends QUI\Control
 {
+    /**
+     * @param array<string, mixed> $attributes
+     */
     public function __construct(array $attributes = [])
     {
         $this->setAttributes([

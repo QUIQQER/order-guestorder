@@ -19,11 +19,20 @@ use function class_exists;
 use function count;
 use function date;
 use function floatval;
+use function is_string;
 use function json_decode;
 use function method_exists;
 
 class EventHandler
 {
+    /**
+     * @return QUI\Session|QUI\System\Console\Session|null
+     */
+    protected static function getSessionInstance(): QUI\Session | QUI\System\Console\Session | null
+    {
+        return QUI::getSession();
+    }
+
     /**
      * Handles the onRequest event triggered by the Rewrite class
      *
@@ -75,7 +84,7 @@ class EventHandler
             return null;
         }
 
-        if (!QUI::getSession()->get(GuestOrder::FLAG)) {
+        if (!self::getSessionInstance()?->get(GuestOrder::FLAG)) {
             return null;
         }
 
@@ -111,11 +120,11 @@ class EventHandler
      * properties to assign an order in process to the guest user.
      * this event hooks into the getOrder process and returns the guest order if necessary
      *
-     * @param $OrderProcess
+     * @param OrderProcess $OrderProcess
      * @return AbstractOrder|null
      * @throws QUI\Database\Exception
      */
-    public static function onOrderProcessGetOrder($OrderProcess): ?AbstractOrder
+    public static function onOrderProcessGetOrder(OrderProcess $OrderProcess): ?AbstractOrder
     {
         if (!GuestOrder::isActive()) {
             return null;
@@ -126,6 +135,7 @@ class EventHandler
         }
 
         $SessionUser = QUI::getUserBySession();
+        $Session = self::getSessionInstance();
         $Handler = QUI\ERP\Order\Handler::getInstance();
 
         if (!($SessionUser instanceof GuestOrderUser)) {
@@ -139,7 +149,7 @@ class EventHandler
             isset($_REQUEST['step']) && $_REQUEST['step'] === 'Processing'
             || $OrderProcess->getAttribute('step') === 'Processing'
         ) {
-            $email = QUI::getSession()->get(GuestOrder::EMAIL);
+            $email = $Session?->get(GuestOrder::EMAIL);
 
             $result = QUI::getDataBase()->fetch([
                 'from' => $Handler->table(),
@@ -157,11 +167,11 @@ class EventHandler
 
                 if ($customer['email'] === $email) {
                     if (isset($customer['uuid'])) {
-                        QUI::getSession()->set(GuestOrder::CUSTOMER_UUID, $customer['uuid']);
+                        $Session?->set(GuestOrder::CUSTOMER_UUID, $customer['uuid']);
                     }
 
                     if (isset($customer['id'])) {
-                        QUI::getSession()->set(GuestOrder::CUSTOMER_ID, $customer['id']);
+                        $Session?->set(GuestOrder::CUSTOMER_ID, $customer['id']);
                     }
 
                     try {
@@ -178,6 +188,11 @@ class EventHandler
                     try {
                         $Order = $Handler->getOrderByHash($_REQUEST['orderHash']);
                         $Customer = $Order->getCustomer();
+
+                        if (!$Customer) {
+                            return null;
+                        }
+
                         $Address = $Customer->getStandardAddress();
                         $mailList = $Address->getMailList();
                         $customerMail = null;
@@ -187,8 +202,14 @@ class EventHandler
                         }
 
                         if ($customerMail === $email) {
-                            QUI::getSession()->set(GuestOrder::CUSTOMER_UUID, $Customer->getUUID());
-                            QUI::getSession()->set(GuestOrder::CUSTOMER_ID, $Customer->getId());
+                            $Session?->set(GuestOrder::CUSTOMER_UUID, $Customer->getUUID());
+                            $Session?->set(GuestOrder::CUSTOMER_ID, $Customer->getId());
+
+                            $customerUuid = $Session?->get(GuestOrder::CUSTOMER_UUID);
+
+                            if (empty($customerUuid)) {
+                                return null;
+                            }
 
                             $table = $Handler->table();
                             if ($Order instanceof QUI\ERP\Order\OrderInProcess) {
@@ -197,7 +218,7 @@ class EventHandler
 
                             QUI::getDataBase()->update(
                                 $table,
-                                ['c_user' => QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)],
+                                ['c_user' => $customerUuid],
                                 ['hash' => $Order->getUUID()]
                             );
 
@@ -244,17 +265,23 @@ class EventHandler
                 'guestOrder' => $guestId
             ]);
 
-            $orderId = QUI::getDatabase()->getPDO()->lastInsertId();
+            $orderId = QUI::getDatabase()->getPDO()?->lastInsertId();
+
+            if (empty($orderId)) {
+                return null;
+            }
         }
 
         try {
             // maybe we have to set the customer uuid
             // only if session exists
-            if (QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)) {
+            $customerUuid = $Session?->get(GuestOrder::CUSTOMER_UUID);
+
+            if ($customerUuid) {
                 // cUser ändern
                 QUI::getDataBase()->update(
                     $Handler->tableOrderProcess(),
-                    ['c_user' => QUI::getSession()->get(GuestOrder::CUSTOMER_UUID)],
+                    ['c_user' => $customerUuid],
                     ['id' => $orderId]
                 );
             }
@@ -288,8 +315,51 @@ class EventHandler
             return;
         }
 
+        if (!($Order instanceof AbstractOrder)) {
+            return;
+        }
+
+        self::assignGuestOrderCustomer($Order);
+    }
+
+    /**
+     * Assign customer before OrderInProcess->createOrder() runs.
+     * This avoids invoice validation with unresolved guest session users.
+     */
+    public static function onQuiqqerOrderProcessSendCreateOrder(OrderProcess $OrderProcess): void
+    {
+        if (!GuestOrder::isActive()) {
+            return;
+        }
+
+        try {
+            $Order = $OrderProcess->getOrder();
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError($Exception->getMessage(), [
+                'event' => 'onQuiqqerOrderProcessSendCreateOrder'
+            ]);
+
+            return;
+        }
+
+        if (!($Order instanceof AbstractOrder)) {
+            return;
+        }
+
+        self::assignGuestOrderCustomer($Order);
+    }
+
+    /**
+     * @param AbstractOrder $Order
+     */
+    protected static function assignGuestOrderCustomer(AbstractOrder $Order): void
+    {
         $Customer = $Order->getCustomer();
         $GuestUser = new GuestOrderUser();
+
+        if (!$Customer) {
+            return;
+        }
 
         // no guest user? we have nothing to do
         // if yes, we have to create the user
@@ -300,7 +370,11 @@ class EventHandler
         try {
             $CustomerAddress = $Customer->getAddress();
             $SystemUser = QUI::getUsers()->getSystemUser();
-            $email = QUI::getSession()->get(GuestOrder::EMAIL);
+            $email = self::getSessionInstance()?->get(GuestOrder::EMAIL);
+
+            if (empty($email) || !is_string($email)) {
+                return;
+            }
 
             $Articles = $Order->getArticles();
             $oldPriceFactors = $Articles->getPriceFactors()->toArray();
@@ -315,15 +389,27 @@ class EventHandler
                     // user already exists
                     $User = QUI::getUsers()->getUserByName($email);
                     $Order->setCustomer($User);
-                    $Order->setInvoiceAddress($User->getStandardAddress());
+                    $Address = $User->getStandardAddress();
+
+                    if ($Address) {
+                        $Order->setInvoiceAddress($Address);
+                    }
                 } elseif (GuestOrder::isAnonymousOrder()) {
                     $GuestUser->setAttribute('email', $email);
                     $Order->setCustomer($GuestUser);
                 } else {
                     $User = GuestOrder::createGuestAccount($email, $CustomerAddress);
 
+                    if (!$User) {
+                        return;
+                    }
+
                     $Order->setCustomer($User);
-                    $Order->setInvoiceAddress($User->getStandardAddress());
+                    $Address = $User->getStandardAddress();
+
+                    if ($Address) {
+                        $Order->setInvoiceAddress($Address);
+                    }
                 }
 
                 // set old prices factors, because of setCustomer strange behaviour
@@ -348,8 +434,16 @@ class EventHandler
             // we have to create an account via frontend users because of the mail auth stuff
             $User = GuestOrder::triggerFrontendUsersRegistration($email);
 
+            if (!$User) {
+                return;
+            }
 
             $Address = $User->getStandardAddress();
+
+            if (!$Address) {
+                return;
+            }
+
             $Address->setAttributes($CustomerAddress->getAttributes());
             $Address->save($SystemUser);
 
@@ -402,7 +496,7 @@ class EventHandler
                 $Order->setData('guest-order-hash', $guestId);
                 $Order->update(QUI::getUsers()->getSystemUser());
 
-                QUI::getSession()->set('guest-order-id', $Order->getUUID());
+                self::getSessionInstance()?->set('guest-order-id', $Order->getUUID());
             }
         } catch (\Exception) {
         }
@@ -515,7 +609,7 @@ class EventHandler
         $calculations = $Order->getArticles()->getCalculations();
         $sum = $calculations['sum'];
 
-        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()?->getValue(
             'guestorder',
             'anonymous_max_sum'
         );
@@ -578,7 +672,7 @@ class EventHandler
         $calculations = $order->getArticles()->getCalculations();
         $sum = $calculations['sum'];
 
-        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()?->getValue(
             'guestorder',
             'anonymous_max_sum'
         );
@@ -628,7 +722,7 @@ class EventHandler
         $calculations = $order->getArticles()->getCalculations();
         $sum = $calculations['sum'];
 
-        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+        $maxTotal = QUI::getPackage('quiqqer/order-guestorder')->getConfig()?->getValue(
             'guestorder',
             'anonymous_max_sum'
         );
@@ -723,6 +817,10 @@ class EventHandler
         // activated users do not need activation links
         $Customer = $Order->getCustomer();
 
+        if (!$Customer) {
+            return;
+        }
+
         if ($Customer->getUUID()) {
             try {
                 $User = QUI::getUsers()->get($Customer->getUUID());
@@ -738,7 +836,7 @@ class EventHandler
         $invoiceLink = GuestOrder::getInvoiceCreationLink($Order);
         $createAccountLink = GuestOrder::getAccountCreationLink($Order);
 
-        $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')->getConfig()->getValue(
+        $guestInvoicing = QUI::getPackage('quiqqer/order-guestorder')->getConfig()?->getValue(
             'guestorder',
             'invoicing_for_guests'
         );
@@ -808,6 +906,10 @@ class EventHandler
         }
 
         $Customer = $Order->getCustomer();
+        if (!$Customer) {
+            self::redirectToMainSite();
+        }
+
         $email = $Customer->getAttribute('email');
 
         if ($email !== $user) {
@@ -828,6 +930,12 @@ class EventHandler
             $Registration->register();
 
             $User = $Registration->getRegisteredUser();
+
+            if (!$User) {
+                self::showSiteError();
+                return;
+            }
+
             $Order->setCustomer($User);
             $Order->save(QUI::getUsers()->getSystemUser());
 
@@ -887,6 +995,10 @@ class EventHandler
         }
 
         $Customer = $Order->getCustomer();
+        if (!$Customer) {
+            self::redirectToMainSite();
+        }
+
         $email = $Customer->getAttribute('email');
 
         if ($email !== $user) {
@@ -911,7 +1023,10 @@ class EventHandler
             }
 
             // alles passt, dann kann eine invoice angelegt werden
-            $Order->createInvoice(QUI::getUserBySession());
+            if ($Order instanceof QUI\ERP\Order\Order) {
+                $Order->createInvoice(QUI::getUserBySession());
+            }
+
             return;
         }
 
@@ -932,7 +1047,8 @@ class EventHandler
      */
     protected static function redirectToMainSite(): never
     {
-        $Redirect = new RedirectResponse(QUI::getRewrite()->getProject()->getVHost(true, true));
+        $redirectTarget = (string)(QUI::getRewrite()->getProject()?->getVHost(true, true) ?: '/');
+        $Redirect = new RedirectResponse($redirectTarget);
         $Redirect->setStatusCode(Response::HTTP_SEE_OTHER);
         $Redirect->send();
         exit;
@@ -949,6 +1065,11 @@ class EventHandler
     protected static function setSiteContent(string $content): void
     {
         $Site = QUI::getRewrite()->getSite();
+
+        if (!$Site) {
+            return;
+        }
+
         $Site->setAttribute('short', '');
         $Site->setAttribute('type', 'standard');
         $Site->setAttribute('quiqqer.bricks.areas', '');
