@@ -4,7 +4,6 @@
  * This file contains package_quiqqer_order-guestorder_ajax_frontend_setCustomerData
  */
 
-use QUI\ERP\Accounting\Invoice\Invoice;
 use QUI\ERP\Accounting\Invoice\InvoiceTemporary;
 use QUI\ERP\Accounting\Invoice\Utils\Invoice as InvoiceUtils;
 use QUI\ERP\Order\Guest\GuestOrder;
@@ -151,9 +150,7 @@ QUI::$Ajax->registerFunction(
                 $Invoice = $Invoice->post(QUI::getUsers()->getSystemUser());
             }
 
-            if ($Invoice instanceof Invoice) {
-                $Invoice->sendTo($email);
-            }
+            $Invoice->sendTo($email);
 
             $message .= '<p>' .
                 QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.invoiceSuccessful') .
