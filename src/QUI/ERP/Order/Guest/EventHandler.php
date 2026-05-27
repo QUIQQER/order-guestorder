@@ -95,10 +95,10 @@ class EventHandler
      * event that hooks into the UserManager->get().
      * if the desired user is a GuestOrderUser (id=6), then this is returned.
      *
-     * @param int $id
+     * @param int|string $id
      * @return GuestOrderUser|null
      */
-    public static function onUserGet(int $id): ?GuestOrderUser
+    public static function onUserGet(int | string $id): ?GuestOrderUser
     {
         if (!GuestOrder::isActive()) {
             return null;
@@ -106,7 +106,11 @@ class EventHandler
 
         $Guest = new GuestOrderUser();
 
-        if ($Guest->getId() === $id) {
+        if ((string)$Guest->getId() === (string)$id) {
+            return $Guest;
+        }
+
+        if ((string)$Guest->getUUID() === (string)$id) {
             return $Guest;
         }
 
