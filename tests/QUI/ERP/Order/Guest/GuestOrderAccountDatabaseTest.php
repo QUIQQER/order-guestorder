@@ -5,6 +5,7 @@ namespace QUITests\Order\Guest;
 use PHPUnit\Framework\TestCase;
 use QUI;
 use QUI\ERP\Order\Guest\GuestOrder;
+use QUI\Mail\Mailer;
 use QUI\Users\Address;
 use Throwable;
 
@@ -46,5 +47,43 @@ class GuestOrderAccountDatabaseTest extends TestCase
         self::assertSame('PHPUnit', $User->getAttribute('firstname'));
         self::assertSame('Guest Account', $User->getAttribute('lastname'));
         self::assertSame('Teststadt', $User->getStandardAddress()?->getAttribute('city'));
+    }
+
+    public function testRegistersGuestThroughFrontendUsers(): void
+    {
+        $email = 'pu-fu-' . bin2hex(random_bytes(6)) . '@example.test';
+        $originalPost = $_POST;
+
+        try {
+            $User = GuestOrder::triggerFrontendUsersRegistration($email);
+        } finally {
+            $_POST = $originalPost;
+        }
+
+        self::assertNotNull($User);
+        $this->userUuid = $User->getUUID();
+        self::assertSame($email, $User->getAttribute('email'));
+        self::assertTrue(QUI::getUsers()->usernameExists($User->getUsername()));
+    }
+
+    public function testActivatesGuestAndMarksGeneratedPasswordForReplacement(): void
+    {
+        $email = 'pu-password-' . bin2hex(random_bytes(6)) . '@example.test';
+        $SystemUser = QUI::getUsers()->getSystemUser();
+        $User = QUI::getUsers()->createChild($email, $SystemUser);
+        $this->userUuid = $User->getUUID();
+        $User->setAttribute('email', $email);
+        $User->save($SystemUser);
+        $originalDisableMailSending = Mailer::$DISABLE_MAIL_SENDING;
+
+        try {
+            Mailer::$DISABLE_MAIL_SENDING = true;
+            GuestOrder::sendNewPasswordMail($User);
+        } finally {
+            Mailer::$DISABLE_MAIL_SENDING = $originalDisableMailSending;
+        }
+
+        self::assertTrue($User->isActive());
+        self::assertTrue((bool)$User->getAttribute('quiqqer.set.new.password'));
     }
 }

@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use QUI;
 use QUI\ERP\Order\Guest\EmailVerification;
 use QUI\ERP\Order\Guest\GuestOrder;
+use QUI\Rewrite;
 use QUI\Verification\Entity\LinkVerification;
 use QUI\Verification\Enum\VerificationErrorReason;
 
@@ -34,6 +35,22 @@ class EmailVerificationUnitTest extends TestCase
             QUI::getLocale()->get('quiqqer/frontend-users', 'message.registration_error'),
             $Handler->getErrorMessage($Verification, VerificationErrorReason::INVALID_CODE)
         );
+    }
+
+    public function testSuccessMessageFallsBackToRootWithoutProject(): void
+    {
+        $originalRewrite = QUI::$Rewrite ?? QUI::getRewrite();
+        $Rewrite = $this->createMock(Rewrite::class);
+        $Rewrite->method('getProject')->willReturn(null);
+
+        try {
+            QUI::$Rewrite = $Rewrite;
+            $message = (new EmailVerification())->getSuccessMessage($this->createVerification());
+        } finally {
+            QUI::$Rewrite = $originalRewrite;
+        }
+
+        self::assertStringContainsString("window.location = '/'", $message);
     }
 
     public function testErrorCallbackAcceptsVerificationReason(): void
