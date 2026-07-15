@@ -130,4 +130,38 @@ class OrderProcessFlowDatabaseTest extends TestCase
         self::assertSame((string)$FirstOrder->getCustomer()->getUUID(), (string)$data['customerId']);
         self::assertSame((string)$data['customerId'], (string)$data['c_user']);
     }
+
+    public function testResumesGuestOrderProcessByOrderHashDuringProcessing(): void
+    {
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->with('step')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $Address = new QUI\ERP\Address([
+            'firstname' => 'PHPUnit',
+            'lastname' => 'Order Process',
+            'country' => 'DE'
+        ], $Order->getCustomer());
+        $Address->addMail('phpunit-order-process@example.com');
+        $Order->setInvoiceAddress($Address);
+        $Order->save(QUI::getUsers()->getSystemUser());
+
+        $_REQUEST['step'] = 'Processing';
+        $_REQUEST['orderHash'] = $Order->getUUID();
+        $Processing = $this->createMock(OrderProcess::class);
+        $Processing->method('getAttribute')->with('step')->willReturn('Processing');
+
+        $ResumedOrder = EventHandler::onOrderProcessGetOrder($Processing);
+
+        self::assertInstanceOf(OrderInProcess::class, $ResumedOrder);
+        self::assertSame($Order->getId(), $ResumedOrder->getId());
+        self::assertSame(
+            (string)$Order->getCustomer()->getUUID(),
+            (string)QUI::getSession()?->get(GuestOrder::CUSTOMER_UUID)
+        );
+        self::assertSame(
+            (string)$Order->getCustomer()->getId(),
+            (string)QUI::getSession()?->get(GuestOrder::CUSTOMER_ID)
+        );
+    }
 }
