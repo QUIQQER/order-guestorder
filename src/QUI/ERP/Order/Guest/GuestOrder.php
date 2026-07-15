@@ -144,7 +144,7 @@ class GuestOrder
      * @return void
      * @throws QUI\Exception
      * @throws QUI\Verification\Exception
-     * @throws \DateMalformedStringException
+     * @throws \Exception
      */
     public static function sendEmailVerification(string $email, null | QUI\Projects\Project $Project = null): void
     {
