@@ -4,9 +4,12 @@ namespace QUITests\Order\Guest;
 
 use PHPUnit\Framework\TestCase;
 use QUI;
+use QUI\ERP\Accounting\ArticleList;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\EventHandler;
 use QUI\ERP\Order\Guest\GuestOrderUser;
+use QUI\ERP\Order\OrderInProcess;
+use QUI\ERP\Order\SimpleCheckout\Checkout;
 use QUI\ERP\User;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
@@ -75,6 +78,36 @@ class EventHandlerFlowTest extends TestCase
         self::assertTrue(true);
     }
 
+    public function testAnonymousCheckoutDisablesHiddenAddressAndShippingValidation(): void
+    {
+        $this->withGuestOrderType('anonymous', function (): void {
+            $Checkout = $this->createAnonymousCheckout();
+            $showDelivery = true;
+            $showShipping = true;
+            $showBillingAddress = true;
+            $validateAddress = true;
+            $validateShipping = true;
+
+            EventHandler::onQuiqqerSimpleCheckoutBodyEnd(
+                $Checkout,
+                $showDelivery,
+                $showShipping,
+                $showBillingAddress
+            );
+            EventHandler::onQuiqqerSimpleCheckoutValidation(
+                $Checkout,
+                $validateAddress,
+                $validateShipping
+            );
+
+            self::assertFalse($showDelivery);
+            self::assertFalse($showShipping);
+            self::assertFalse($showBillingAddress);
+            self::assertFalse($validateAddress);
+            self::assertFalse($validateShipping);
+        });
+    }
+
     private function createGuestOrder(): AbstractOrder
     {
         $Customer = $this->createMock(User::class);
@@ -85,6 +118,18 @@ class EventHandlerFlowTest extends TestCase
         $Order->method('getUUID')->willReturn('phpunit-order-uuid');
 
         return $Order;
+    }
+
+    private function createAnonymousCheckout(): Checkout
+    {
+        $Articles = $this->createMock(ArticleList::class);
+        $Articles->method('getCalculations')->willReturn(['sum' => 0]);
+        $Order = $this->createMock(OrderInProcess::class);
+        $Order->method('getArticles')->willReturn($Articles);
+        $Checkout = $this->createMock(Checkout::class);
+        $Checkout->method('getOrder')->willReturn($Order);
+
+        return $Checkout;
     }
 
     private function withGuestOrderType(string $type, callable $callback): void

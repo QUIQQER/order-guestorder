@@ -759,6 +759,7 @@ class EventHandler
         }
 
         $validateAddress = false;
+        $validateShipping = false;
     }
 
     //endregion
