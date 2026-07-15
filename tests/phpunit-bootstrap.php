@@ -9,3 +9,5 @@ if (!defined('QUIQQER_AJAX')) {
 }
 
 require_once __DIR__ . '/../../../../bootstrap.php';
+require_once __DIR__ . '/stubs/QUI/ERP/Order/SimpleCheckout/Checkout.php';
+require_once __DIR__ . '/stubs/QUI/ERP/Accounting/Invoice/Utils/Invoice.php';

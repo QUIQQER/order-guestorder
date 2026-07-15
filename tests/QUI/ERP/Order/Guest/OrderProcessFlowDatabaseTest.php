@@ -199,7 +199,9 @@ class OrderProcessFlowDatabaseTest extends TestCase
             'u' => $this->email
         ];
 
-        EventHandler::onRequest($this->createMock(Rewrite::class), '/phpunit-invoice');
+        $this->withInvoicePackageInstalled(function (): void {
+            EventHandler::onRequest($this->createMock(Rewrite::class), '/phpunit-invoice');
+        });
 
         self::assertSame($Order->getId(), Handler::getInstance()->getOrderByHash($Order->getUUID())->getId());
     }
@@ -237,9 +239,27 @@ class OrderProcessFlowDatabaseTest extends TestCase
 
         try {
             QUI::$Rewrite = $Rewrite;
-            EventHandler::onRequest($Rewrite, '/phpunit-invoice-address');
+            $this->withInvoicePackageInstalled(static function () use ($Rewrite): void {
+                EventHandler::onRequest($Rewrite, '/phpunit-invoice-address');
+            });
         } finally {
             QUI::$Rewrite = $originalRewrite;
+        }
+    }
+
+    private function withInvoicePackageInstalled(callable $callback): void
+    {
+        $PackageManager = QUI::getPackageManager();
+        $Installed = new ReflectionProperty($PackageManager, 'installed');
+        $originalInstalled = $Installed->getValue($PackageManager);
+        $installed = $originalInstalled;
+        $installed['quiqqer/invoice'] = true;
+
+        try {
+            $Installed->setValue($PackageManager, $installed);
+            $callback();
+        } finally {
+            $Installed->setValue($PackageManager, $originalInstalled);
         }
     }
 }
