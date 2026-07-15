@@ -2,7 +2,7 @@
 <database>
     <global>
         <table name="orders_process">
-            <field type="VARCHAR(250) NULL DEFAULT NULL">guestOrder</field>
+            <field type="string" length="250" nullable="true" default="null">guestOrder</field>
             <index>guestOrder</index>
         </table>
     </global>

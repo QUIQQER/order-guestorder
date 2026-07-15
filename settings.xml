@@ -13,7 +13,7 @@
                 </conf>
                 <conf name="invoicing_for_guests">
                     <type><![CDATA[bool]]></type>
-                    <defaultvalue>1></defaultvalue>
+                    <defaultvalue>1</defaultvalue>
                 </conf>
                 <conf name="prevent_duplicate_guest_order_registration">
                     <type><![CDATA[bool]]></type>
