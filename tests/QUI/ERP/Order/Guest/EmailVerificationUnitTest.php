@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use QUI;
 use QUI\ERP\Order\Guest\EmailVerification;
+use QUI\ERP\Order\Guest\GuestOrder;
 use QUI\Verification\Entity\LinkVerification;
 use QUI\Verification\Enum\VerificationErrorReason;
 
@@ -42,6 +43,35 @@ class EmailVerificationUnitTest extends TestCase
         $Handler->onError($this->createVerification(), VerificationErrorReason::EXPIRED);
 
         self::assertTrue(true);
+    }
+
+    public function testSuccessCallbackActivatesGuestOrderSession(): void
+    {
+        $Config = QUI::getPackage('quiqqer/order-guestorder')->getConfig();
+        $Session = QUI::getSession();
+        self::assertNotNull($Config);
+        self::assertNotNull($Session);
+        $originalSection = $Config->getSection('guestorder');
+        $originalFlag = $Session->get(GuestOrder::FLAG);
+
+        try {
+            $Config->setValue('guestorder', 'type', 'noRegistration');
+            $Config->save();
+            $Session->remove(GuestOrder::FLAG);
+
+            (new EmailVerification())->onSuccess($this->createVerification());
+
+            self::assertSame(1, $Session->get(GuestOrder::FLAG));
+        } finally {
+            $Config->setSection('guestorder', is_array($originalSection) ? $originalSection : []);
+            $Config->save();
+
+            if ($originalFlag === false) {
+                $Session->remove(GuestOrder::FLAG);
+            } else {
+                $Session->set(GuestOrder::FLAG, $originalFlag);
+            }
+        }
     }
 
     private function createVerification(): LinkVerification
