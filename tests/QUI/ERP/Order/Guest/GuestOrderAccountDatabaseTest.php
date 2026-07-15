@@ -56,6 +56,7 @@ class GuestOrderAccountDatabaseTest extends TestCase
         $Config = QUI::getPackage('quiqqer/frontend-users')->getConfig();
         self::assertNotNull($Config);
         $originalRegistration = $Config->getSection('registration');
+        $originalDisableMailSending = Mailer::$DISABLE_MAIL_SENDING;
 
         try {
             $Config->setValue('registration', 'addressInput', 1);
@@ -63,9 +64,11 @@ class GuestOrderAccountDatabaseTest extends TestCase
                 'firstname' => ['show' => true, 'required' => true]
             ]));
             $Config->save();
+            Mailer::$DISABLE_MAIL_SENDING = true;
             $User = GuestOrder::triggerFrontendUsersRegistration($email);
         } finally {
             $_POST = $originalPost;
+            Mailer::$DISABLE_MAIL_SENDING = $originalDisableMailSending;
             $Config->setSection('registration', is_array($originalRegistration) ? $originalRegistration : []);
             $Config->save();
         }
