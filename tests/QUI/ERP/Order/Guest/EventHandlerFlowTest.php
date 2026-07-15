@@ -8,11 +8,15 @@ use QUI\ERP\Accounting\ArticleList;
 use QUI\ERP\Accounting\PriceFactors\FactorList;
 use QUI\ERP\Address;
 use QUI\ERP\Order\AbstractOrder;
+use QUI\ERP\Order\Controls\AbstractOrderingStep;
+use QUI\ERP\Order\Controls\OrderProcess\CustomerData;
 use QUI\ERP\Order\Guest\EventHandler;
 use QUI\ERP\Order\Guest\GuestOrder;
 use QUI\ERP\Order\Guest\GuestOrderUser;
 use QUI\ERP\Order\OrderInProcess;
+use QUI\ERP\Order\OrderProcess;
 use QUI\ERP\Order\SimpleCheckout\Checkout;
+use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\ERP\User;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
@@ -108,6 +112,68 @@ class EventHandlerFlowTest extends TestCase
             self::assertFalse($showBillingAddress);
             self::assertFalse($validateAddress);
             self::assertFalse($validateShipping);
+        });
+    }
+
+    public function testAnonymousOrderProcessRemovesCustomerStepAndKeepsOtherSteps(): void
+    {
+        $this->withGuestOrderType('anonymous', function (): void {
+            $Articles = $this->createMock(ArticleList::class);
+            $Articles->method('getCalculations')->willReturn(['sum' => 0]);
+            $Order = $this->createMock(AbstractOrder::class);
+            $Order->method('getArticles')->willReturn($Articles);
+            $CustomerData = new CustomerData();
+            $OtherStep = $this->createMock(AbstractOrderingStep::class);
+            $Steps = new OrderProcessSteps([$CustomerData, $OtherStep]);
+
+            EventHandler::onQuiqqerOrderProcessStepsEnd(
+                $this->createMock(OrderProcess::class),
+                $Order,
+                $Steps
+            );
+
+            self::assertSame([$OtherStep], $Steps->toArray());
+        });
+    }
+
+    public function testOrderProcessSendEventsForwardOrderToGuestAssignment(): void
+    {
+        $this->withGuestOrderType('noRegistration', function (): void {
+            $Order = $this->createMock(AbstractOrder::class);
+            $Order->expects(self::exactly(2))->method('getCustomer')->willReturn(null);
+            $OrderProcess = $this->createMock(OrderProcess::class);
+            $OrderProcess->expects(self::exactly(2))->method('getOrder')->willReturn($Order);
+
+            EventHandler::onQuiqqerOrderProcessSend($OrderProcess);
+            EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+        });
+    }
+
+    public function testOrderProcessSendEventsIgnoreMissingOrder(): void
+    {
+        $this->withGuestOrderType('noRegistration', function (): void {
+            $OrderProcess = $this->createMock(OrderProcess::class);
+            $OrderProcess->expects(self::exactly(2))->method('getOrder')->willReturn(null);
+
+            EventHandler::onQuiqqerOrderProcessSend($OrderProcess);
+            EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+            self::assertTrue(true);
+        });
+    }
+
+    public function testOrderProcessSendEventsHandleOrderLookupFailure(): void
+    {
+        $this->withGuestOrderType('noRegistration', function (): void {
+            $OrderProcess = $this->createMock(OrderProcess::class);
+            $OrderProcess->expects(self::exactly(2))
+                ->method('getOrder')
+                ->willThrowException(new QUI\Exception('PHPUnit order lookup failure'));
+
+            EventHandler::onQuiqqerOrderProcessSend($OrderProcess);
+            EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+            self::assertTrue(true);
         });
     }
 
