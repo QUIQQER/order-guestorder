@@ -142,6 +142,7 @@ class EventHandler
         $SessionUser = QUI::getUserBySession();
         $Session = self::getSessionInstance();
         $Handler = QUI\ERP\Order\Handler::getInstance();
+        $Connection = QUI::getDataBaseConnection();
 
         if (!($SessionUser instanceof GuestOrderUser)) {
             return null;
@@ -156,18 +157,19 @@ class EventHandler
         ) {
             $email = $Session?->get(GuestOrder::EMAIL);
 
-            $result = QUI::getDataBase()->fetch([
-                'from' => $Handler->table(),
-                'where' => [
-                    'hash' => $guestId,
-                ],
-                'limit' => 1,
-                'order' => 'c_date DESC'
-            ]);
+            $result = $Connection->createQueryBuilder()
+                ->select('*')
+                ->from(Doctrine::quoteIdentifier($Handler->table()))
+                ->where(Doctrine::quoteIdentifier('hash') . ' = :hash')
+                ->setParameter('hash', $guestId)
+                ->orderBy(Doctrine::quoteIdentifier('c_date'), 'DESC')
+                ->setMaxResults(1)
+                ->executeQuery()
+                ->fetchAssociative();
 
             // order already processed and send
-            if (isset($result[0])) {
-                $customer = $result[0]['customer'];
+            if ($result !== false) {
+                $customer = $result['customer'];
                 $customer = json_decode($customer, true);
 
                 if ($customer['email'] === $email) {
@@ -180,7 +182,7 @@ class EventHandler
                     }
 
                     try {
-                        return $Handler->get($result[0]['hash']);
+                        return $Handler->get($result['hash']);
                     } catch (\Exception) {
                     }
                 }
@@ -221,10 +223,10 @@ class EventHandler
                                 $table = $Handler->tableOrderProcess();
                             }
 
-                            QUI::getDataBase()->update(
-                                $table,
-                                ['c_user' => $customerUuid],
-                                ['hash' => $Order->getUUID()]
+                            $Connection->update(
+                                Doctrine::quoteIdentifier($table),
+                                [Doctrine::quoteIdentifier('c_user') => $customerUuid],
+                                [Doctrine::quoteIdentifier('hash') => $Order->getUUID()]
                             );
 
                             return $Handler->getOrderByHash($Order->getUUID());
@@ -235,19 +237,22 @@ class EventHandler
             }
         }
 
-        $result = QUI::getDataBase()->fetch([
-            'from' => $Handler->tableOrderProcess(),
-            'where' => [
-                'customerId' => $sessId,
-                'successful' => 0,
-                'guestOrder' => $guestId
-            ],
-            'limit' => 1,
-            'order' => 'c_date DESC'
-        ]);
+        $result = $Connection->createQueryBuilder()
+            ->select(Doctrine::quoteIdentifier('id'))
+            ->from(Doctrine::quoteIdentifier($Handler->tableOrderProcess()))
+            ->where(Doctrine::quoteIdentifier('customerId') . ' = :customerId')
+            ->andWhere(Doctrine::quoteIdentifier('successful') . ' = :successful')
+            ->andWhere(Doctrine::quoteIdentifier('guestOrder') . ' = :guestOrder')
+            ->setParameter('customerId', $sessId)
+            ->setParameter('successful', 0)
+            ->setParameter('guestOrder', $guestId)
+            ->orderBy(Doctrine::quoteIdentifier('c_date'), 'DESC')
+            ->setMaxResults(1)
+            ->executeQuery()
+            ->fetchAssociative();
 
-        if (isset($result[0]['id'])) {
-            $orderId = $result[0]['id'];
+        if ($result !== false) {
+            $orderId = $result['id'];
         } else {
             $status = QUI\ERP\Constants::ORDER_STATUS_CREATED;
 
@@ -257,20 +262,23 @@ class EventHandler
 
             $ErpUser = QUI\ERP\User::convertUserToErpUser($SessionUser);
 
-            QUI::getDataBase()->insert($Handler->tableOrderProcess(), [
-                'id_prefix' => QUI\ERP\Order\Utils\Utils::getOrderPrefix(),
-                'c_user' => $sessId,
-                'c_date' => date('Y-m-d H:i:s'),
-                'hash' => QUI\Utils\Uuid::get(),
-                'customerId' => $sessId,
-                'customer' => json_encode($ErpUser->getAttributes()),
-                'status' => $status,
-                'paid_status' => QUI\ERP\Constants::PAYMENT_STATUS_OPEN,
-                'successful' => 0,
-                'guestOrder' => $guestId
-            ]);
+            $Connection->insert(
+                Doctrine::quoteIdentifier($Handler->tableOrderProcess()),
+                [
+                    Doctrine::quoteIdentifier('id_prefix') => QUI\ERP\Order\Utils\Utils::getOrderPrefix(),
+                    Doctrine::quoteIdentifier('c_user') => $sessId,
+                    Doctrine::quoteIdentifier('c_date') => date('Y-m-d H:i:s'),
+                    Doctrine::quoteIdentifier('hash') => QUI\Utils\Uuid::get(),
+                    Doctrine::quoteIdentifier('customerId') => $sessId,
+                    Doctrine::quoteIdentifier('customer') => json_encode($ErpUser->getAttributes()),
+                    Doctrine::quoteIdentifier('status') => $status,
+                    Doctrine::quoteIdentifier('paid_status') => QUI\ERP\Constants::PAYMENT_STATUS_OPEN,
+                    Doctrine::quoteIdentifier('successful') => 0,
+                    Doctrine::quoteIdentifier('guestOrder') => $guestId
+                ]
+            );
 
-            $orderId = QUI::getDatabase()->getPDO()?->lastInsertId();
+            $orderId = $Connection->lastInsertId();
 
             if (empty($orderId)) {
                 return null;
@@ -284,10 +292,10 @@ class EventHandler
 
             if ($customerUuid) {
                 // cUser ändern
-                QUI::getDataBase()->update(
-                    $Handler->tableOrderProcess(),
-                    ['c_user' => $customerUuid],
-                    ['id' => $orderId]
+                $Connection->update(
+                    Doctrine::quoteIdentifier($Handler->tableOrderProcess()),
+                    [Doctrine::quoteIdentifier('c_user') => $customerUuid],
+                    [Doctrine::quoteIdentifier('id') => $orderId]
                 );
             }
 
