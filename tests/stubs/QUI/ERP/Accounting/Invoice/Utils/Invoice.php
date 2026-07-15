@@ -25,5 +25,10 @@ if (!class_exists(Invoice::class)) {
 
             return $missing;
         }
+
+        public static function getMissingAttributeMessage(string $missingAttribute): string
+        {
+            return $missingAttribute;
+        }
     }
 }
