@@ -10,6 +10,8 @@ use QUI\ERP\Order\Guest\GuestOrderUser;
 use QUI\ERP\Order\Handler;
 use QUI\ERP\Order\OrderInProcess;
 use QUI\ERP\Order\OrderProcess;
+use QUI\Interfaces\Projects\Site as SiteInterface;
+use QUI\Rewrite;
 use QUI\Utils\Doctrine;
 use ReflectionProperty;
 use Throwable;
@@ -21,6 +23,7 @@ class OrderProcessFlowDatabaseTest extends TestCase
     private array $originalSessionValues = [];
     private array $originalRequest = [];
     private string $guestOrderId;
+    private string $email;
 
     protected function setUp(): void
     {
@@ -50,8 +53,9 @@ class OrderProcessFlowDatabaseTest extends TestCase
         }
 
         $this->guestOrderId = 'phpunit-order-process-' . bin2hex(random_bytes(8));
+        $this->email = 'phpunit-order-process-' . bin2hex(random_bytes(8)) . '@example.com';
         $Session->set(GuestOrder::FLAG, 1);
-        $Session->set(GuestOrder::EMAIL, 'phpunit-order-process@example.com');
+        $Session->set(GuestOrder::EMAIL, $this->email);
         $Session->set(GuestOrder::CUSTOMER_UUID, QUI\Utils\Uuid::get());
         $Session->remove(GuestOrder::CUSTOMER_ID);
         $Session->set('guest-order-id', $this->guestOrderId);
@@ -142,7 +146,7 @@ class OrderProcessFlowDatabaseTest extends TestCase
             'lastname' => 'Order Process',
             'country' => 'DE'
         ], $Order->getCustomer());
-        $Address->addMail('phpunit-order-process@example.com');
+        $Address->addMail($this->email);
         $Order->setInvoiceAddress($Address);
         $Order->save(QUI::getUsers()->getSystemUser());
 
@@ -163,5 +167,79 @@ class OrderProcessFlowDatabaseTest extends TestCase
             (string)$Order->getCustomer()->getId(),
             (string)QUI::getSession()?->get(GuestOrder::CUSTOMER_ID)
         );
+    }
+
+    public function testInvoiceRequestValidatesCompleteGuestOrderWithoutCreatingInvoice(): void
+    {
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->with('step')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $Address = new QUI\ERP\Address([
+            'salutation' => 'mr',
+            'firstname' => 'PHPUnit',
+            'lastname' => 'Invoice Request',
+            'street' => 'Teststraße',
+            'street_no' => '42',
+            'zip' => '12345',
+            'city' => 'Teststadt',
+            'country' => 'DE'
+        ], $Order->getCustomer());
+        $Address->addMail($this->email);
+        $Order->setInvoiceAddress($Address);
+        $Order->save(QUI::getUsers()->getSystemUser());
+        self::assertSame(
+            [],
+            QUI\ERP\Accounting\Invoice\Utils\Invoice::getMissingAddressData($Address->getAttributes())
+        );
+        $_REQUEST = [
+            'guestorder' => '1',
+            't' => 'invoice',
+            'o' => $Order->getUUID(),
+            'u' => $this->email
+        ];
+
+        EventHandler::onRequest($this->createMock(Rewrite::class), '/phpunit-invoice');
+
+        self::assertSame($Order->getId(), Handler::getInstance()->getOrderByHash($Order->getUUID())->getId());
+    }
+
+    public function testInvoiceRequestRendersMissingAddressForm(): void
+    {
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->with('step')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $Address = new QUI\ERP\Address([
+            'firstname' => 'PHPUnit',
+            'country' => 'DE'
+        ], $Order->getCustomer());
+        $Address->addMail($this->email);
+        $Order->setInvoiceAddress($Address);
+        $Order->save(QUI::getUsers()->getSystemUser());
+        self::assertNotSame(
+            [],
+            QUI\ERP\Accounting\Invoice\Utils\Invoice::getMissingAddressData($Address->getAttributes())
+        );
+        $_REQUEST = [
+            'guestorder' => '1',
+            't' => 'invoice',
+            'o' => $Order->getUUID(),
+            'u' => $this->email
+        ];
+        $originalRewrite = QUI::$Rewrite ?? QUI::getRewrite();
+        $Site = $this->createMock(SiteInterface::class);
+        $Site->expects(self::exactly(4))->method('setAttribute');
+        $Site->method('getAttribute')->willReturn('');
+        $Rewrite = $this->createMock(Rewrite::class);
+        $Rewrite->method('getProject')->willReturn($originalRewrite->getProject());
+        $Rewrite->method('getSite')->willReturn($Site);
+
+        try {
+            QUI::$Rewrite = $Rewrite;
+            EventHandler::onRequest($Rewrite, '/phpunit-invoice-address');
+        } finally {
+            QUI::$Rewrite = $originalRewrite;
+        }
     }
 }
