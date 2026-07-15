@@ -12,6 +12,7 @@ use QUI\Exception;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
+use QUI\Utils\Doctrine;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -486,17 +487,19 @@ class EventHandler
         $orderProcessId = $Order->getAttribute('order_process_id');
 
         try {
-            $result = QUI::getDataBase()->fetch([
-                'from' => $Handler->tableOrderProcess(),
-                'where' => [
-                    'guestOrder' => $guestId,
-                    'hash' => $orderProcessId
-                ],
-                'limit' => 1,
-                'order' => 'c_date DESC'
-            ]);
+            $result = QUI::getDataBaseConnection()->createQueryBuilder()
+                ->select(Doctrine::quoteIdentifier('id'))
+                ->from(Doctrine::quoteIdentifier($Handler->tableOrderProcess()))
+                ->where(Doctrine::quoteIdentifier('guestOrder') . ' = :guestOrder')
+                ->andWhere(Doctrine::quoteIdentifier('hash') . ' = :hash')
+                ->setParameter('guestOrder', $guestId)
+                ->setParameter('hash', $orderProcessId)
+                ->orderBy(Doctrine::quoteIdentifier('c_date'), 'DESC')
+                ->setMaxResults(1)
+                ->executeQuery()
+                ->fetchOne();
 
-            if (isset($result[0])) {
+            if ($result !== false) {
                 $Order->setData('guest-order-hash', $guestId);
                 $Order->update(QUI::getUsers()->getSystemUser());
 
