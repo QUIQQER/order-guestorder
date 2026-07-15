@@ -210,6 +210,7 @@ class GuestOrder
 
         $Registration = new QUI\FrontendUsers\Controls\Registration();
         $Registration->setAttribute('Registrar', $EmailRegistrar);
+        $Registration->setAttribute('addressValidation', false);
         $Registration->register();
 
         $User = $Registration->getRegisteredUser();

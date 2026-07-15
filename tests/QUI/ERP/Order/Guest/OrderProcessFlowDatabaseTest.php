@@ -322,6 +322,9 @@ class OrderProcessFlowDatabaseTest extends TestCase
         $originalRewrite = QUI::$Rewrite ?? QUI::getRewrite();
         $originalPost = $_POST;
         $originalDisableMailSending = Mailer::$DISABLE_MAIL_SENDING;
+        $FrontendUsersConfig = QUI::getPackage('quiqqer/frontend-users')->getConfig();
+        self::assertNotNull($FrontendUsersConfig);
+        $originalRegistration = $FrontendUsersConfig->getSection('registration');
         $content = null;
         $Site = $this->createMock(SiteInterface::class);
         $Site->method('setAttribute')->willReturnCallback(
@@ -339,6 +342,11 @@ class OrderProcessFlowDatabaseTest extends TestCase
         $Rewrite->method('getSite')->willReturn($Site);
 
         try {
+            $FrontendUsersConfig->setValue('registration', 'addressInput', 1);
+            $FrontendUsersConfig->setValue('registration', 'addressFields', json_encode([
+                'firstname' => ['show' => true, 'required' => true]
+            ]));
+            $FrontendUsersConfig->save();
             QUI::$Rewrite = $Rewrite;
             Mailer::$DISABLE_MAIL_SENDING = true;
             EventHandler::onRequest($Rewrite, '/phpunit-account');
@@ -346,6 +354,11 @@ class OrderProcessFlowDatabaseTest extends TestCase
             QUI::$Rewrite = $originalRewrite;
             $_POST = $originalPost;
             Mailer::$DISABLE_MAIL_SENDING = $originalDisableMailSending;
+            $FrontendUsersConfig->setSection(
+                'registration',
+                is_array($originalRegistration) ? $originalRegistration : []
+            );
+            $FrontendUsersConfig->save();
         }
 
         return $content;

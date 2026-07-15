@@ -53,11 +53,21 @@ class GuestOrderAccountDatabaseTest extends TestCase
     {
         $email = 'pu-fu-' . bin2hex(random_bytes(6)) . '@example.test';
         $originalPost = $_POST;
+        $Config = QUI::getPackage('quiqqer/frontend-users')->getConfig();
+        self::assertNotNull($Config);
+        $originalRegistration = $Config->getSection('registration');
 
         try {
+            $Config->setValue('registration', 'addressInput', 1);
+            $Config->setValue('registration', 'addressFields', json_encode([
+                'firstname' => ['show' => true, 'required' => true]
+            ]));
+            $Config->save();
             $User = GuestOrder::triggerFrontendUsersRegistration($email);
         } finally {
             $_POST = $originalPost;
+            $Config->setSection('registration', is_array($originalRegistration) ? $originalRegistration : []);
+            $Config->save();
         }
 
         self::assertNotNull($User);
