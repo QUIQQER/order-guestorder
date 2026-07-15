@@ -4,7 +4,6 @@ namespace QUI\ERP\Order\Guest;
 
 use Exception;
 use QUI;
-use QUI\FrontendUsers\EmailVerification;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
 use QUI\Mail\Mailer;
 use QUI\Projects\Project;
