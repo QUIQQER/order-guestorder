@@ -11,6 +11,7 @@ use QUI\ERP\Order\Handler;
 use QUI\ERP\Order\OrderInProcess;
 use QUI\ERP\Order\OrderProcess;
 use QUI\Interfaces\Projects\Site as SiteInterface;
+use QUI\Mail\Mailer;
 use QUI\Rewrite;
 use QUI\Utils\Doctrine;
 use ReflectionProperty;
@@ -24,6 +25,7 @@ class OrderProcessFlowDatabaseTest extends TestCase
     private array $originalRequest = [];
     private string $guestOrderId;
     private string $email;
+    private string | int | null $createdUserUuid = null;
 
     protected function setUp(): void
     {
@@ -68,6 +70,13 @@ class OrderProcessFlowDatabaseTest extends TestCase
 
     protected function tearDown(): void
     {
+        if ($this->createdUserUuid !== null) {
+            try {
+                QUI::getUsers()->deleteUser($this->createdUserUuid);
+            } catch (Throwable) {
+            }
+        }
+
         try {
             QUI::getDataBaseConnection()->delete(
                 Doctrine::quoteIdentifier(Handler::getInstance()->tableOrderProcess()),
@@ -247,6 +256,45 @@ class OrderProcessFlowDatabaseTest extends TestCase
         }
     }
 
+    public function testAccountRequestCreatesUserAndAssignsItToGuestOrder(): void
+    {
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->with('step')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $content = $this->requestAccountCreation($Order);
+        $User = QUI::getUsers()->getUserByMail($this->email);
+        $this->createdUserUuid = $User->getUUID();
+        $StoredOrder = Handler::getInstance()->getOrderByHash($Order->getUUID());
+
+        self::assertSame($User->getUUID(), $StoredOrder->getCustomer()?->getUUID());
+        self::assertTrue($User->isActive());
+        self::assertTrue((bool)$User->getAttribute('quiqqer.set.new.password'));
+        self::assertIsString($content);
+        self::assertStringContainsString('message-success', $content);
+    }
+
+    public function testAccountRequestActivatesExistingInactiveUser(): void
+    {
+        $SystemUser = QUI::getUsers()->getSystemUser();
+        $User = QUI::getUsers()->createChild($this->email, $SystemUser);
+        $this->createdUserUuid = $User->getUUID();
+        $User->setAttribute('email', $this->email);
+        $User->save($SystemUser);
+        self::assertFalse($User->isActive());
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->with('step')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+
+        $content = $this->requestAccountCreation($Order);
+
+        self::assertTrue($User->isActive());
+        self::assertTrue((bool)$User->getAttribute('quiqqer.set.new.password'));
+        self::assertIsString($content);
+        self::assertStringContainsString('message-success', $content);
+    }
+
     private function withInvoicePackageInstalled(callable $callback): void
     {
         $PackageManager = QUI::getPackageManager();
@@ -261,5 +309,45 @@ class OrderProcessFlowDatabaseTest extends TestCase
         } finally {
             $Installed->setValue($PackageManager, $originalInstalled);
         }
+    }
+
+    private function requestAccountCreation(OrderInProcess $Order): ?string
+    {
+        $_REQUEST = [
+            'guestorder' => '1',
+            't' => 'account',
+            'o' => $Order->getUUID(),
+            'u' => $this->email
+        ];
+        $originalRewrite = QUI::$Rewrite ?? QUI::getRewrite();
+        $originalPost = $_POST;
+        $originalDisableMailSending = Mailer::$DISABLE_MAIL_SENDING;
+        $content = null;
+        $Site = $this->createMock(SiteInterface::class);
+        $Site->method('setAttribute')->willReturnCallback(
+            static function (string $name, mixed $value) use (&$content): void {
+                if ($name === 'content') {
+                    $content = $value;
+                }
+            }
+        );
+        $Site->method('getAttribute')->willReturnCallback(
+            static fn(string $name): mixed => $originalRewrite->getSite()?->getAttribute($name)
+        );
+        $Rewrite = $this->createMock(Rewrite::class);
+        $Rewrite->method('getProject')->willReturn($originalRewrite->getProject());
+        $Rewrite->method('getSite')->willReturn($Site);
+
+        try {
+            QUI::$Rewrite = $Rewrite;
+            Mailer::$DISABLE_MAIL_SENDING = true;
+            EventHandler::onRequest($Rewrite, '/phpunit-account');
+        } finally {
+            QUI::$Rewrite = $originalRewrite;
+            $_POST = $originalPost;
+            Mailer::$DISABLE_MAIL_SENDING = $originalDisableMailSending;
+        }
+
+        return $content;
     }
 }
