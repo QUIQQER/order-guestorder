@@ -548,7 +548,6 @@ class EventHandler
 
         try {
             $SessionUser = QUI::getUserBySession();
-            $Handler = QUI\ERP\Order\Handler::getInstance();
 
             if (!method_exists($SessionUser, 'getGuestOrderId')) {
                 return;
@@ -557,37 +556,48 @@ class EventHandler
             $guestOrderId = $SessionUser->getGuestOrderId();
             $orderId = $Order->getId();
 
-            $result = QUI::getDataBase()->fetch([
-                'from' => $Handler->tableOrderProcess(),
-                'where' => [
-                    'id' => $orderId
-                ],
-                'limit' => 1
-            ]);
-
-            if (empty($result[0])) {
-                return;
-            }
-
-            if ($result[0]['guestOrder'] === $guestOrderId) {
-                return;
-            }
-
-            QUI::getDataBase()->update(
-                $Handler->tableOrderProcess(),
-                ['guestOrder' => $guestOrderId],
-                ['id' => $orderId]
-            );
-
-            QUI::getDataBase()->delete($Handler->tableOrderProcess(), [
-                'id' => [
-                    'type' => 'NOT',
-                    'value' => $orderId
-                ]
-            ]);
+            self::assignClearedOrderToGuest($orderId, $guestOrderId);
         } catch (\Exception $exception) {
             QUI\System\Log::addError($exception->getMessage());
         }
+    }
+
+    protected static function assignClearedOrderToGuest(int | string $orderId, string $guestOrderId): void
+    {
+        $Handler = QUI\ERP\Order\Handler::getInstance();
+        $Connection = QUI::getDataBaseConnection();
+        $table = Doctrine::quoteIdentifier($Handler->tableOrderProcess());
+
+        $result = $Connection->createQueryBuilder()
+            ->select(Doctrine::quoteIdentifier('guestOrder'))
+            ->from($table)
+            ->where(Doctrine::quoteIdentifier('id') . ' = :orderId')
+            ->setParameter('orderId', $orderId)
+            ->setMaxResults(1)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        if ($result === false) {
+            return;
+        }
+
+        if ($result['guestOrder'] === $guestOrderId) {
+            return;
+        }
+
+        $Connection->update(
+            $table,
+            [Doctrine::quoteIdentifier('guestOrder') => $guestOrderId],
+            [Doctrine::quoteIdentifier('id') => $orderId]
+        );
+
+        $Connection->createQueryBuilder()
+            ->delete($table)
+            ->where(Doctrine::quoteIdentifier('guestOrder') . ' = :guestOrder')
+            ->andWhere(Doctrine::quoteIdentifier('id') . ' <> :orderId')
+            ->setParameter('guestOrder', $guestOrderId)
+            ->setParameter('orderId', $orderId)
+            ->executeStatement();
     }
 
     //region Anonymous Order
