@@ -4,7 +4,6 @@ namespace QUI\ERP\Order\Guest;
 
 use Exception;
 use QUI;
-use QUI\FrontendUsers\EmailVerification;
 use QUI\FrontendUsers\Exception\UserAlreadyExistsException;
 use QUI\Mail\Mailer;
 use QUI\Projects\Project;
@@ -144,7 +143,7 @@ class GuestOrder
      * @return void
      * @throws QUI\Exception
      * @throws QUI\Verification\Exception
-     * @throws \DateMalformedStringException
+     * @throws \Exception
      */
     public static function sendEmailVerification(string $email, null | QUI\Projects\Project $Project = null): void
     {
@@ -211,6 +210,7 @@ class GuestOrder
 
         $Registration = new QUI\FrontendUsers\Controls\Registration();
         $Registration->setAttribute('Registrar', $EmailRegistrar);
+        $Registration->setAttribute('addressValidation', false);
         $Registration->register();
 
         $User = $Registration->getRegisteredUser();

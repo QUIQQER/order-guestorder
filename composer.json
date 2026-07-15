@@ -19,10 +19,10 @@
     "url": "https://www.pcsg.de"
   },
   "require": {
-    "php": "^8.1",
-    "quiqqer/core": "^2",
-    "quiqqer/order": "^2.5",
-    "quiqqer/verification": "^3"
+    "php": "^8.2",
+    "quiqqer/core": "^2.24",
+    "quiqqer/order": "^2.10",
+    "quiqqer/verification": "^3.4"
   },
   "autoload": {
     "psr-4": {
