@@ -5,8 +5,11 @@ namespace QUITests\Order\Guest;
 use PHPUnit\Framework\TestCase;
 use QUI;
 use QUI\ERP\Accounting\ArticleList;
+use QUI\ERP\Accounting\PriceFactors\FactorList;
+use QUI\ERP\Address;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\EventHandler;
+use QUI\ERP\Order\Guest\GuestOrder;
 use QUI\ERP\Order\Guest\GuestOrderUser;
 use QUI\ERP\Order\OrderInProcess;
 use QUI\ERP\Order\SimpleCheckout\Checkout;
@@ -106,6 +109,62 @@ class EventHandlerFlowTest extends TestCase
             self::assertFalse($validateAddress);
             self::assertFalse($validateShipping);
         });
+    }
+
+    public function testAssignsAnonymousGuestCustomerWithoutCreatingAccount(): void
+    {
+        $Session = QUI::getSession();
+        self::assertNotNull($Session);
+        $sessionKeys = [GuestOrder::EMAIL, GuestOrder::CUSTOMER_UUID];
+        $originalValues = [];
+
+        foreach ($sessionKeys as $key) {
+            $originalValues[$key] = $Session->get($key);
+        }
+
+        $email = 'phpunit-anonymous-order-' . bin2hex(random_bytes(8)) . '@example.com';
+        $customerUuid = QUI\Utils\Uuid::get();
+
+        try {
+            $Session->set(GuestOrder::EMAIL, $email);
+            $Session->set(GuestOrder::CUSTOMER_UUID, $customerUuid);
+
+            $this->withGuestOrderType('anonymous', function () use ($email, $customerUuid): void {
+                $CustomerAddress = $this->createMock(Address::class);
+                $Customer = $this->createMock(User::class);
+                $Customer->method('getUUID')->willReturn($customerUuid);
+                $Customer->method('getAddress')->willReturn($CustomerAddress);
+                $PriceFactors = new FactorList();
+                $Articles = $this->createMock(ArticleList::class);
+                $Articles->method('getPriceFactors')->willReturn($PriceFactors);
+                $Order = $this->createMock(AbstractOrder::class);
+                $Order->method('getCustomer')->willReturn($Customer);
+                $Order->method('getArticles')->willReturn($Articles);
+                $Order->expects(self::once())->method('addComment');
+                $Order->expects(self::once())->method('setCustomer')->with(
+                    self::callback(
+                        static fn(mixed $User): bool => $User instanceof GuestOrderUser
+                            && $User->getAttribute('email') === $email
+                    )
+                );
+                $Handler = new class () extends EventHandler {
+                    public static function assignGuestCustomer(AbstractOrder $Order): void
+                    {
+                        parent::assignGuestOrderCustomer($Order);
+                    }
+                };
+
+                $Handler::assignGuestCustomer($Order);
+            });
+        } finally {
+            foreach ($originalValues as $key => $value) {
+                if ($value === false) {
+                    $Session->remove($key);
+                } else {
+                    $Session->set($key, $value);
+                }
+            }
+        }
     }
 
     private function createGuestOrder(): AbstractOrder
