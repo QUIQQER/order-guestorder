@@ -3,7 +3,7 @@
 namespace QUI\ERP\Order\Guest;
 
 use QUI;
-use QUI\Exception;
+use QUI\Utils\Doctrine;
 
 use function json_decode;
 
@@ -181,19 +181,20 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         $guestId = $this->getGuestOrderId();
 
         try {
-            $result = QUI::getDataBase()->fetch([
-                'from' => $Handler->tableOrderProcess(),
-                'where' => [
-                    'guestOrder' => $guestId
-                ],
-                'limit' => 1
-            ]);
-        } catch (Exception) {
+            $result = QUI::getDataBaseConnection()->createQueryBuilder()
+                ->select('*')
+                ->from(Doctrine::quoteIdentifier($Handler->tableOrderProcess()))
+                ->where(Doctrine::quoteIdentifier('guestOrder') . ' = :guestOrder')
+                ->setParameter('guestOrder', $guestId)
+                ->setMaxResults(1)
+                ->executeQuery()
+                ->fetchAssociative();
+        } catch (\Exception) {
             return false;
         }
 
-        if (!empty($result[0])) {
-            return $result[0];
+        if ($result !== false) {
+            return $result;
         }
 
         return false;
