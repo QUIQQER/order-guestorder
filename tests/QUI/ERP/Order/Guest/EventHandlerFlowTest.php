@@ -18,8 +18,10 @@ use QUI\ERP\Order\OrderProcess;
 use QUI\ERP\Order\SimpleCheckout\Checkout;
 use QUI\ERP\Order\Utils\OrderProcessSteps;
 use QUI\ERP\User;
+use QUI\Interfaces\Users\User as UserInterface;
 use QUI\Rewrite;
 use QUI\Smarty\Collector;
+use ReflectionProperty;
 
 class EventHandlerFlowTest extends TestCase
 {
@@ -41,6 +43,26 @@ class EventHandlerFlowTest extends TestCase
         });
     }
 
+    public function testResolvesGuestUserFromFlaggedFrontendSession(): void
+    {
+        $Session = QUI::getSession();
+        self::assertNotNull($Session);
+        $originalFlag = $Session->get(GuestOrder::FLAG);
+
+        try {
+            $Session->set(GuestOrder::FLAG, 1);
+            $this->withGuestOrderType('noRegistration', static function (): void {
+                self::assertInstanceOf(GuestOrderUser::class, EventHandler::onUserGetBySession());
+            });
+        } finally {
+            if ($originalFlag === false) {
+                $Session->remove(GuestOrder::FLAG);
+            } else {
+                $Session->set(GuestOrder::FLAG, $originalFlag);
+            }
+        }
+    }
+
     public function testExtendsGuestOrderMailWithAccountCreationLink(): void
     {
         $this->withGuestOrderType('noRegistration', function (): void {
@@ -51,6 +73,28 @@ class EventHandlerFlowTest extends TestCase
 
             self::assertStringContainsString('t=account', $Collector->getContent());
             self::assertStringContainsString('phpunit-order-uuid', $Collector->getContent());
+        });
+    }
+
+    public function testTemplateEventsRenderGuestOrderControls(): void
+    {
+        $this->withSessionUser(new GuestOrderUser(), function (): void {
+            $this->withGuestOrderType('noRegistration', static function (): void {
+                $OrderCollector = new Collector();
+                $CheckoutCollector = new Collector();
+
+                EventHandler::extendOrder($OrderCollector);
+                EventHandler::extendCheckout($CheckoutCollector, null, null);
+
+                self::assertStringContainsString(
+                    'quiqqer-order-ordering-nobody-guestOrder',
+                    $OrderCollector->getContent()
+                );
+                self::assertStringContainsString(
+                    'name="guest-order-create-account"',
+                    $CheckoutCollector->getContent()
+                );
+            });
         });
     }
 
@@ -270,6 +314,20 @@ class EventHandlerFlowTest extends TestCase
         } finally {
             $Config->setSection('guestorder', is_array($originalSection) ? $originalSection : []);
             $Config->save();
+        }
+    }
+
+    private function withSessionUser(UserInterface $User, callable $callback): void
+    {
+        $Users = QUI::getUsers();
+        $SessionUser = new ReflectionProperty($Users, 'Session');
+        $originalUser = $SessionUser->getValue($Users);
+
+        try {
+            $SessionUser->setValue($Users, $User);
+            $callback();
+        } finally {
+            $SessionUser->setValue($Users, $originalUser);
         }
     }
 }

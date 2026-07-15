@@ -797,7 +797,9 @@ class EventHandler
      */
     public static function extendCheckout(Collector $Collector, mixed $User, mixed $Order): void
     {
-        if (QUI::getUsers()->isAuth(QUI::getUserBySession())) {
+        $SessionUser = QUI::getUserBySession();
+
+        if (!($SessionUser instanceof GuestOrderUser)) {
             return;
         }
 
