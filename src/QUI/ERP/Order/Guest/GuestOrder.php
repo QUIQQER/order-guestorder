@@ -22,6 +22,16 @@ class GuestOrder
     const CUSTOMER_ID = 'guest-customer_id';
 
     /**
+     * Checks whether an order customer is the ERP representation of the nobody user.
+     */
+    public static function isNobodyCustomer(QUI\ERP\User $Customer): bool
+    {
+        $Nobody = QUI\ERP\User::convertUserToErpUser(QUI::getUsers()->getNobody());
+
+        return $Customer->getUUID() === $Nobody->getUUID();
+    }
+
+    /**
      * sets the flag, so we know if we are in a guest order
      *
      * @return void
@@ -29,7 +39,7 @@ class GuestOrder
     public static function setGuestOrderFlag(): void
     {
         if (GuestOrder::isActive()) {
-            QUI::getSession()?->set(self::FLAG, 1);
+            QUI::getSession()->set(self::FLAG, 1);
         }
     }
 
@@ -40,7 +50,7 @@ class GuestOrder
     public static function removeGuestOrderFlag(): void
     {
         if (GuestOrder::isActive()) {
-            QUI::getSession()?->remove(self::FLAG);
+            QUI::getSession()->remove(self::FLAG);
         }
     }
 
@@ -105,11 +115,12 @@ class GuestOrder
         $DefaultProject = QUI::getProjectManager()->getStandard();
         $host = $DefaultProject?->getVHost(true, true) ?? '/';
         $Customer = $Order->getCustomer();
+        $email = self::isNobodyCustomer($Customer) ? '' : ($Customer->getAttribute('email') ?? '');
 
         return $host . '/?' . http_build_query([
                 'guestorder' => 1,
                 't' => 'invoice',
-                'u' => $Customer?->getAttribute('email') ?? '',
+                'u' => $email,
                 'o' => $Order->getUUID()
             ]);
     }
@@ -126,11 +137,12 @@ class GuestOrder
         $DefaultProject = QUI::getProjectManager()->getStandard();
         $host = $DefaultProject?->getVHost(true, true) ?? '/';
         $Customer = $Order->getCustomer();
+        $email = self::isNobodyCustomer($Customer) ? '' : ($Customer->getAttribute('email') ?? '');
 
         return $host . '/?' . http_build_query([
                 'guestorder' => 1,
                 't' => 'account',
-                'u' => $Customer?->getAttribute('email') ?? '',
+                'u' => $email,
                 'o' => $Order->getUUID()
             ]);
     }

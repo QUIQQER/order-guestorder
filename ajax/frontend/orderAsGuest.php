@@ -14,7 +14,7 @@ QUI::getAjax()->registerFunction(
 
         if ($alwaysGuestAllowed) {
             // set guest session
-            QUI::getSession()?->set(GuestOrder::EMAIL, $email);
+            QUI::getSession()->set(GuestOrder::EMAIL, $email);
             GuestOrder::setGuestOrderFlag();
             return;
         }
@@ -38,7 +38,7 @@ QUI::getAjax()->registerFunction(
         }
 
         // set guest session
-        QUI::getSession()?->set(GuestOrder::EMAIL, $email);
+        QUI::getSession()->set(GuestOrder::EMAIL, $email);
         GuestOrder::setGuestOrderFlag();
     },
     ['email']
