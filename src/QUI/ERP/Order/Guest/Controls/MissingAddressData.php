@@ -48,13 +48,14 @@ class MissingAddressData extends QUI\Control
 
         $Customer = $Order->getCustomer();
         $Guest = new QUI\ERP\Order\Guest\GuestOrderUser();
+        $customerIsNobody = QUI\ERP\Order\Guest\GuestOrder::isNobodyCustomer($Customer);
 
         $Engine->assign([
             'orderHash' => $Order->getUUID(),
-            'email' => $Customer?->getAttribute('email') ?? '',
+            'email' => $customerIsNobody ? '' : ($Customer->getAttribute('email') ?? ''),
             'missing' => $missing,
             'CustomerData' => $CustomerData,
-            'showAccountCreation' => $Customer && $Customer->getUUID() === $Guest->getUUID()
+            'showAccountCreation' => !$customerIsNobody && $Customer->getUUID() === $Guest->getUUID()
         ]);
 
         return $Engine->fetch(dirname(__FILE__) . '/MissingAddressData.html');

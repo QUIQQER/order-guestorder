@@ -196,7 +196,7 @@ class EventHandler
                         $Order = $Handler->getOrderByHash($_REQUEST['orderHash']);
                         $Customer = $Order->getCustomer();
 
-                        if (!$Customer) {
+                        if (GuestOrder::isNobodyCustomer($Customer)) {
                             return null;
                         }
 
@@ -370,7 +370,7 @@ class EventHandler
         $Customer = $Order->getCustomer();
         $GuestUser = new GuestOrderUser();
 
-        if (!$Customer) {
+        if (GuestOrder::isNobodyCustomer($Customer)) {
             return;
         }
 
@@ -845,7 +845,7 @@ class EventHandler
         // activated users do not need activation links
         $Customer = $Order->getCustomer();
 
-        if (!$Customer) {
+        if (GuestOrder::isNobodyCustomer($Customer)) {
             return;
         }
 
@@ -934,7 +934,7 @@ class EventHandler
         }
 
         $Customer = $Order->getCustomer();
-        if (!$Customer) {
+        if (GuestOrder::isNobodyCustomer($Customer)) {
             self::redirectToMainSite();
         }
 
@@ -1024,7 +1024,7 @@ class EventHandler
         }
 
         $Customer = $Order->getCustomer();
-        if (!$Customer) {
+        if (GuestOrder::isNobodyCustomer($Customer)) {
             self::redirectToMainSite();
         }
 
