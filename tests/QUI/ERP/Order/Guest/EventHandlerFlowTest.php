@@ -183,8 +183,9 @@ class EventHandlerFlowTest extends TestCase
     public function testOrderProcessSendEventsForwardOrderToGuestAssignment(): void
     {
         $this->withGuestOrderType('noRegistration', function (): void {
+            $Nobody = User::convertUserToErpUser(QUI::getUsers()->getNobody());
             $Order = $this->createMock(AbstractOrder::class);
-            $Order->expects(self::exactly(2))->method('getCustomer')->willReturn(null);
+            $Order->expects(self::exactly(2))->method('getCustomer')->willReturn($Nobody);
             $OrderProcess = $this->createMock(OrderProcess::class);
             $OrderProcess->expects(self::exactly(2))->method('getOrder')->willReturn($Order);
 

@@ -19,7 +19,7 @@ QUI::getAjax()->registerFunction(
         $Customer = $Order->getCustomer();
         $Guest = new GuestOrderUser();
 
-        if (!$Customer) {
+        if (GuestOrder::isNobodyCustomer($Customer)) {
             throw new QUI\Exception(
                 QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.sendInvoice.error')
             );
