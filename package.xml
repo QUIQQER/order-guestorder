@@ -9,6 +9,15 @@
             <locale group="quiqqer/order-guestorder" var="package.description"/>
         </description>
 
+        <capabilities schemaVersion="1">
+            <capability id="commerce.guest-checkout">
+                <title>Guest and anonymous checkout</title>
+                <description>
+                    Enables customers to place orders as guests or anonymously without creating a user account.
+                </description>
+            </capability>
+        </capabilities>
+
         <image src="URL_OPT_DIR/quiqqer/order-guestorder/bin/images/Logo.png"/>
 
         <support>
