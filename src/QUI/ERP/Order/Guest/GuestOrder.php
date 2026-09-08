@@ -113,7 +113,7 @@ class GuestOrder
     public static function getInvoiceCreationLink(QUI\ERP\Order\AbstractOrder $Order): string
     {
         $DefaultProject = QUI::getProjectManager()->getStandard();
-        $host = $DefaultProject?->getVHost(true, true) ?? '/';
+        $host = $DefaultProject->getVHost(true, true);
         $Customer = $Order->getCustomer();
         $email = self::isNobodyCustomer($Customer) ? '' : ($Customer->getAttribute('email') ?? '');
 
@@ -135,7 +135,7 @@ class GuestOrder
     public static function getAccountCreationLink(QUI\ERP\Order\AbstractOrder $Order): string
     {
         $DefaultProject = QUI::getProjectManager()->getStandard();
-        $host = $DefaultProject?->getVHost(true, true) ?? '/';
+        $host = $DefaultProject->getVHost(true, true);
         $Customer = $Order->getCustomer();
         $email = self::isNobodyCustomer($Customer) ? '' : ($Customer->getAttribute('email') ?? '');
 
