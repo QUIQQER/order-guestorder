@@ -305,13 +305,13 @@ class GuestOrder
         $Mailer->addRecipient($email);
 
         $Mailer->setSubject(
-            QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.subject')
+            QUI::getLocale()->get('quiqqer/core', 'mails.user.new_password.subject')
         );
 
-        $body = QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body', [
+        $body = QUI::getLocale()->get('quiqqer/core', 'mails.user.new_password.body', [
             'name' => $User->getName(),
             'password' => $newPassword,
-            'forceNewMsg' => QUI::getLocale()->get('quiqqer/quiqqer', 'mails.user.new_password.body.force_new')
+            'forceNewMsg' => QUI::getLocale()->get('quiqqer/core', 'mails.user.new_password.body.force_new')
         ]);
 
         $Mailer->setBody($body);
