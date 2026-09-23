@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<quiqqer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://www.quiqqer.com/docs/schemas/2.x/events.xsd">
 <events>
+    <event on="onPackageSetup" fire="\QUI\ERP\Order\Guest\EventHandler::onPackageSetup"/>
     <event on="onRequest" fire="\QUI\ERP\Order\Guest\EventHandler::onRequest"/>
     <event on="onUserGet" fire="\QUI\ERP\Order\Guest\EventHandler::onUserGet"/>
     <event on="onUserGetBySession" fire="\QUI\ERP\Order\Guest\EventHandler::onUserGetBySession"/>
@@ -18,3 +21,4 @@
     <event on="onQuiqqer::order::orderProcessCheckoutEnd" fire="\QUI\ERP\Order\Guest\EventHandler::extendCheckout"/>
     <event on="onQuiqqer::order::mail::orderConfirmation::end" fire="\QUI\ERP\Order\Guest\EventHandler::extendMail"/>
 </events>
+</quiqqer>

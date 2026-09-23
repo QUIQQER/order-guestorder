@@ -26,11 +26,14 @@ class OrderProcessFlowDatabaseTest extends TestCase
     private string $guestOrderId;
     private string $email;
     private string | int | null $createdUserUuid = null;
+    private bool $originalDisableMailSending;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->originalDisableMailSending = Mailer::$DISABLE_MAIL_SENDING;
+        Mailer::$DISABLE_MAIL_SENDING = true;
         $this->originalRequest = $_REQUEST;
         $_REQUEST = [];
         $Config = QUI::getPackage('quiqqer/order-guestorder')->getConfig();
@@ -111,6 +114,7 @@ class OrderProcessFlowDatabaseTest extends TestCase
         }
 
         $_REQUEST = $this->originalRequest;
+        Mailer::$DISABLE_MAIL_SENDING = $this->originalDisableMailSending;
         parent::tearDown();
     }
 
@@ -142,6 +146,174 @@ class OrderProcessFlowDatabaseTest extends TestCase
         self::assertSame($this->guestOrderId, $data['guestOrder']);
         self::assertSame((string)$FirstOrder->getCustomer()->getUUID(), (string)$data['customerId']);
         self::assertSame((string)$data['customerId'], (string)$data['c_user']);
+    }
+
+    public function testAnonymousOrderStatusIsSavedAndLaterChangesArePreserved(): void
+    {
+        $Config = QUI::getPackage('quiqqer/order-guestorder')->getConfig();
+        self::assertNotNull($Config);
+        $Config->setValue('guestorder', 'type', 'anonymous');
+        $statusId = $this->configureGuestStatus();
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $originalStatus = $Order->getProcessingStatus();
+        self::assertNotNull($originalStatus);
+        $OrderProcess->method('getOrder')->willReturn($Order);
+
+        EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+        $ReloadedOrder = new OrderInProcess($Order->getId());
+        self::assertSame($statusId, $ReloadedOrder->getProcessingStatus()?->getId());
+        self::assertTrue($ReloadedOrder->getDataEntry('guest-order-status-assigned'));
+        self::assertContains(
+            QUI::getLocale()->get('quiqqer/order', 'message.change.order.status', [
+                'status' => $ReloadedOrder->getProcessingStatus()?->getTitle(),
+                'statusId' => $statusId
+            ]),
+            array_column($ReloadedOrder->getHistory()->toArray(), 'message')
+        );
+
+        $Order->setProcessingStatus($originalStatus);
+        $Order->save(QUI::getUsers()->getSystemUser());
+        EventHandler::onQuiqqerOrderProcessSend($OrderProcess);
+
+        $ReloadedOrder = new OrderInProcess($Order->getId());
+        self::assertSame($originalStatus->getId(), $ReloadedOrder->getProcessingStatus()?->getId());
+    }
+
+    public function testGuestCustomerReceivesConfiguredOrderStatus(): void
+    {
+        $statusId = $this->configureGuestStatus();
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $OrderProcess->method('getOrder')->willReturn($Order);
+
+        try {
+            EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+            $ReloadedOrder = new OrderInProcess($Order->getId());
+            self::assertSame($statusId, $ReloadedOrder->getProcessingStatus()?->getId());
+            self::assertTrue($ReloadedOrder->getDataEntry('guest-order-status-assigned'));
+        } finally {
+            if (QUI::getUsers()->usernameExists($this->email)) {
+                $this->createdUserUuid = QUI::getUsers()->getUserByName($this->email)->getUUID();
+            }
+        }
+    }
+
+    public function testAccountRegistrationKeepsRegularOrderStatus(): void
+    {
+        $this->email = 'pu-status-' . bin2hex(random_bytes(6)) . '@example.test';
+        QUI::getSession()?->set(GuestOrder::EMAIL, $this->email);
+        $this->configureGuestStatus();
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $originalStatusId = $Order->getProcessingStatus()?->getId();
+        $OrderProcess->method('getOrder')->willReturn($Order);
+        $originalPost = $_POST;
+        $originalDisableMailSending = Mailer::$DISABLE_MAIL_SENDING;
+
+        try {
+            Mailer::$DISABLE_MAIL_SENDING = true;
+            $_REQUEST['guest-order-create-account'] = 1;
+            RegistrationRequestFixture::run(
+                $this->email,
+                static fn() => EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess)
+            );
+
+            self::assertTrue(QUI::getUsers()->usernameExists($this->email));
+            $ReloadedOrder = new OrderInProcess($Order->getId());
+            self::assertSame($originalStatusId, $ReloadedOrder->getProcessingStatus()?->getId());
+            self::assertEmpty($ReloadedOrder->getDataEntry('guest-order-status-assigned'));
+        } finally {
+            if (QUI::getUsers()->usernameExists($this->email)) {
+                $this->createdUserUuid = QUI::getUsers()->getUserByName($this->email)->getUUID();
+            }
+
+            $_POST = $originalPost;
+            Mailer::$DISABLE_MAIL_SENDING = $originalDisableMailSending;
+        }
+    }
+
+    public function testGuestOrderForExistingCustomerReceivesGuestStatus(): void
+    {
+        $User = QUI::getUsers()->createChild($this->email, QUI::getUsers()->getSystemUser());
+        $this->createdUserUuid = $User->getUUID();
+        $statusId = $this->configureGuestStatus();
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $OrderProcess->method('getOrder')->willReturn($Order);
+
+        EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+        $ReloadedOrder = new OrderInProcess($Order->getId());
+        self::assertSame($statusId, $ReloadedOrder->getProcessingStatus()?->getId());
+        self::assertSame($User->getUUID(), $ReloadedOrder->getCustomer()->getUUID());
+    }
+
+    public function testRegularCustomerOrderKeepsItsStatus(): void
+    {
+        $this->configureGuestStatus();
+        $User = QUI::getUsers()->createChild($this->email, QUI::getUsers()->getSystemUser());
+        $this->createdUserUuid = $User->getUUID();
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $Order->setCustomer($User);
+        $Order->save(QUI::getUsers()->getSystemUser());
+        $originalStatusId = $Order->getProcessingStatus()?->getId();
+        $OrderProcess->method('getOrder')->willReturn($Order);
+
+        EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+        $ReloadedOrder = new OrderInProcess($Order->getId());
+        self::assertSame($originalStatusId, $ReloadedOrder->getProcessingStatus()?->getId());
+        self::assertEmpty($ReloadedOrder->getDataEntry('guest-order-status-assigned'));
+    }
+
+    public function testDeletedGuestStatusDoesNotPreventCheckout(): void
+    {
+        $Config = QUI::getPackage('quiqqer/order-guestorder')->getConfig();
+        self::assertNotNull($Config);
+        $Config->setValue('guestorder', 'type', 'anonymous');
+        $Config->setValue('guestorder', 'order_status', 2147483647);
+        $Config->save();
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $originalStatusId = $Order->getProcessingStatus()?->getId();
+        $OrderProcess->method('getOrder')->willReturn($Order);
+
+        EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+        $ReloadedOrder = new OrderInProcess($Order->getId());
+        self::assertSame($originalStatusId, $ReloadedOrder->getProcessingStatus()?->getId());
+        self::assertTrue($ReloadedOrder->getDataEntry('guest-order-status-assigned'));
+    }
+
+    private function configureGuestStatus(): int
+    {
+        $statuses = QUI\ERP\Order\ProcessingStatus\Handler::getInstance()->getList();
+        $defaultStatus = (int)QUI\ERP\Order\Settings::getInstance()->get('orderStatus', 'standard');
+        unset($statuses[$defaultStatus]);
+        self::assertNotEmpty($statuses);
+        $statusId = (int)array_key_first($statuses);
+        $Config = QUI::getPackage('quiqqer/order-guestorder')->getConfig();
+        self::assertNotNull($Config);
+        $Config->setValue('guestorder', 'order_status', $statusId);
+        $Config->save();
+
+        return $statusId;
     }
 
     public function testResumesGuestOrderProcessByOrderHashDuringProcessing(): void
@@ -262,7 +434,10 @@ class OrderProcessFlowDatabaseTest extends TestCase
         $OrderProcess->method('getAttribute')->with('step')->willReturn(null);
         $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
         self::assertInstanceOf(OrderInProcess::class, $Order);
-        $content = $this->requestAccountCreation($Order);
+        $content = RegistrationRequestFixture::run(
+            $this->email,
+            fn() => $this->requestAccountCreation($Order)
+        );
         $User = QUI::getUsers()->getUserByMail($this->email);
         $this->createdUserUuid = $User->getUUID();
         $StoredOrder = Handler::getInstance()->getOrderByHash($Order->getUUID());
