@@ -65,7 +65,10 @@ class GuestOrderAccountDatabaseTest extends TestCase
             ]));
             $Config->save();
             Mailer::$DISABLE_MAIL_SENDING = true;
-            $User = GuestOrder::triggerFrontendUsersRegistration($email);
+            $User = RegistrationRequestFixture::run(
+                $email,
+                static fn() => GuestOrder::triggerFrontendUsersRegistration($email)
+            );
         } finally {
             $_POST = $originalPost;
             Mailer::$DISABLE_MAIL_SENDING = $originalDisableMailSending;

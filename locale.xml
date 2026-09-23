@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<quiqqer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://www.quiqqer.com/docs/schemas/2.x/locale.xsd">
 <locales>
     <groups name="quiqqer/order-guestorder" datatype="php,js">
+        <locale name="processing.status.new.guest.order">
+            <de><![CDATA[Neue Gastbestellung]]></de>
+            <en><![CDATA[New guest order]]></en>
+            <es><![CDATA[Nuevo pedido como invitado]]></es>
+            <pt><![CDATA[Nova encomenda como convidado]]></pt>
+            <fr><![CDATA[Nouvelle commande en tant qu’invité]]></fr>
+            <it><![CDATA[Nuovo ordine come ospite]]></it>
+            <pl><![CDATA[Nowe zamówienie jako gość]]></pl>
+        </locale>
+        <locale name="settings.guest.order_status">
+            <de><![CDATA[Bestellstatus für neue Gastbestellungen]]></de>
+            <en><![CDATA[Order status for new guest orders]]></en>
+            <es><![CDATA[Estado de los nuevos pedidos como invitado]]></es>
+            <pt><![CDATA[Estado das novas encomendas como convidado]]></pt>
+            <fr><![CDATA[Statut des nouvelles commandes en tant qu’invité]]></fr>
+            <it><![CDATA[Stato dei nuovi ordini come ospite]]></it>
+            <pl><![CDATA[Status nowych zamówień jako gość]]></pl>
+        </locale>
+        <locale name="settings.guest.order_status.description">
+            <de><![CDATA[Legt den Anfangsstatus neuer Gastbestellungen fest. Wenn der Kunde beim Bestellen ein Kundenkonto anlegt, gilt der normale Standardstatus.]]></de>
+            <en><![CDATA[Defines the initial status of new guest orders. If the customer creates an account during checkout, the regular default status applies.]]></en>
+            <es><![CDATA[Define el estado inicial de los nuevos pedidos como invitado. Si el cliente crea una cuenta durante la compra, se aplica el estado predeterminado habitual.]]></es>
+            <pt><![CDATA[Define o estado inicial das novas encomendas como convidado. Se o cliente criar uma conta durante a compra, aplica-se o estado predefinido habitual.]]></pt>
+            <fr><![CDATA[Définit le statut initial des nouvelles commandes en tant qu’invité. Si le client crée un compte lors de la commande, le statut par défaut habituel s’applique.]]></fr>
+            <it><![CDATA[Definisce lo stato iniziale dei nuovi ordini come ospite. Se il cliente crea un account durante l’acquisto, si applica lo stato predefinito abituale.]]></it>
+            <pl><![CDATA[Określa początkowy status nowych zamówień jako gość. Jeśli klient utworzy konto podczas składania zamówienia, obowiązuje zwykły status domyślny.]]></pl>
+        </locale>
         <locale name="package.title">
             <de><![CDATA[ecoyn - Gastbestellungen]]></de>
             <en><![CDATA[ecoyn - Guest orders]]></en>
@@ -74,7 +103,7 @@
             <it><![CDATA[Tipo di ordine consentito agli ospiti]]></it>
             <pl><![CDATA[Dozwolony rodzaj zamówienia jako gość]]></pl>
         </locale>
-        <locale name="settings.guest.order.type.description" htm="true">
+        <locale name="settings.guest.order.type.description" html="true">
             <de><![CDATA[<p><b>Gastbestellung ohne Registrierung:</b> Kunden können ohne vorherige Registrierung bestellen, müssen jedoch ihre Adresse angeben.</p>
             <p><b>Anonyme Bestellung:</b> Kunden können ohne Registrierung bestellen, ohne ihre Adresse preiszugeben.</p>]]></de>
             <en><![CDATA[
@@ -503,3 +532,4 @@
     </groups>
 
 </locales>
+</quiqqer>

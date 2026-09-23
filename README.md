@@ -37,6 +37,18 @@ Installation
 
 The Package name is: quiqqer/order-guestorder
 
+Guest order status
+------------------
+
+Package setup creates the **New guest order** status with automatic notifications disabled.
+Under **ERP → Order → Guest order**, select **Order status for new guest orders** to choose a different status.
+Setup preserves this selection on subsequent runs.
+
+The selected status applies to new guest and anonymous orders, including orders assigned to an existing customer.
+Customers who explicitly create an account during checkout retain the regular default order status.
+Existing orders and subsequent status changes are not modified. If the configured status has been deleted,
+the order keeps its current status until a valid guest order status is selected.
+
 
 Contribution
 ----------

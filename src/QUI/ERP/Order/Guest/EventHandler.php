@@ -27,6 +27,47 @@ use function method_exists;
 class EventHandler
 {
     /**
+     * Create the initial guest order status once and preserve administrator selections.
+     */
+    public static function onPackageSetup(QUI\Package\Package $Package): void
+    {
+        if ($Package->getName() !== 'quiqqer/order-guestorder') {
+            return;
+        }
+
+        $Config = $Package->getConfig();
+
+        if ($Config === null) {
+            return;
+        }
+
+        $status = $Config->getValue('guestorder', 'order_status');
+
+        if ($status !== false && $status !== '') {
+            return;
+        }
+
+        $Factory = QUI\ERP\Order\ProcessingStatus\Factory::getInstance();
+        $Handler = QUI\ERP\Order\ProcessingStatus\Handler::getInstance();
+        $Handler->refreshList();
+        $statusId = $Factory->getNextId();
+        $titles = [];
+
+        foreach (QUI::availableLanguages() as $language) {
+            $titles[$language] = QUI::getLocale()->getByLang(
+                $language,
+                'quiqqer/order-guestorder',
+                'processing.status.new.guest.order'
+            );
+        }
+
+        $Factory->createProcessingStatus($statusId, '#ffc107', $titles);
+        $Handler->setProcessingStatusNotification($statusId, false);
+        $Config->setValue('guestorder', 'order_status', $statusId);
+        $Config->save();
+    }
+
+    /**
      * @return QUI\Session|QUI\System\Console\Session|null
      */
     protected static function getSessionInstance(): QUI\Session | QUI\System\Console\Session | null
@@ -434,6 +475,20 @@ class EventHandler
                     $Order->getArticles()->addPriceFactor(
                         new QUI\ERP\Accounting\PriceFactors\Factor($priceFactor)
                     );
+                }
+
+                if (
+                    $Order instanceof QUI\ERP\Order\OrderInProcess
+                    && !$Order->getDataEntry('guest-order-status-assigned')
+                ) {
+                    $statusId = (int)QUI::getPackage('quiqqer/order-guestorder')
+                        ->getConfig()?->getValue('guestorder', 'order_status');
+
+                    if ($statusId > 0) {
+                        $Order->setProcessingStatus($statusId);
+                    }
+
+                    $Order->setData('guest-order-status-assigned', true);
                 }
 
                 if (method_exists($Order, 'save')) {
