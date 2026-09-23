@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<quiqqer>
+<quiqqer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://www.quiqqer.com/docs/schemas/2.x/settings.xsd">
     <settings name="ERP">
 
         <config>
@@ -7,6 +8,10 @@
                 <conf name="type">
                     <type><![CDATA[string]]></type>
                     <defaultvalue>no</defaultvalue>
+                </conf>
+                <conf name="order_status">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue></defaultvalue>
                 </conf>
                 <conf name="anonymous_max_sum">
                     <type><![CDATA[string]]></type>
@@ -63,6 +68,16 @@
                                 <locale group="quiqqer/order-guestorder" var="settings.guest.order.type.anonymous"/>
                             </option>
                         </select>
+
+                        <input conf="guestorder.order_status"
+                               data-qui="package/quiqqer/order/bin/backend/utils/StatusSelect">
+                            <text>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order_status"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/order-guestorder" var="settings.guest.order_status.description"/>
+                            </description>
+                        </input>
 
                         <input conf="guestorder.anonymous_max_sum" placeholder="500.00">
                             <text>
