@@ -126,7 +126,14 @@ class EventHandler
             return null;
         }
 
-        if (!self::getSessionInstance()?->get(GuestOrder::FLAG)) {
+        $Session = self::getSessionInstance();
+
+        if (!$Session?->get(GuestOrder::FLAG)) {
+            return null;
+        }
+
+        // Let Core validate authenticated sessions, including any required second factor.
+        if ($Session->get('uid') && $Session->get('auth-primary')) {
             return null;
         }
 
