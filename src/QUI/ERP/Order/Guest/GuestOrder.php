@@ -49,9 +49,7 @@ class GuestOrder
      */
     public static function removeGuestOrderFlag(): void
     {
-        if (GuestOrder::isActive()) {
-            QUI::getSession()->remove(self::FLAG);
-        }
+        QUI::getSession()->remove(self::FLAG);
     }
 
     /**
