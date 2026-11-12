@@ -161,8 +161,8 @@ class GuestOrderUser extends QUI\Users\Nobody implements QUI\Interfaces\Users\Us
         try {
             $this->readEmail();
             $addressInstance->addMail($this->getAttribute('email'));
-        } catch (QUI\Exception $e) {
-            QUI\System\Log::addError($e->getMessage());
+        } catch (QUI\Exception) {
+            // Keep the guest address available if its email cannot be imported.
         }
 
         return $addressInstance;
