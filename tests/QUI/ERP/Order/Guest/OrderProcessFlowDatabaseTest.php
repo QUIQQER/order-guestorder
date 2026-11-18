@@ -27,6 +27,7 @@ class OrderProcessFlowDatabaseTest extends TestCase
     private string $email;
     private string | int | null $createdUserUuid = null;
     private bool $originalDisableMailSending;
+    private array $loginOrderHashes = [];
 
     protected function setUp(): void
     {
@@ -73,6 +74,13 @@ class OrderProcessFlowDatabaseTest extends TestCase
 
     protected function tearDown(): void
     {
+        foreach ($this->loginOrderHashes as $hash) {
+            QUI::getDataBaseConnection()->delete(
+                Doctrine::quoteIdentifier(Handler::getInstance()->tableOrderProcess()),
+                [Doctrine::quoteIdentifier('hash') => $hash]
+            );
+        }
+
         if ($this->createdUserUuid !== null) {
             try {
                 QUI::getUsers()->deleteUser($this->createdUserUuid);
@@ -146,6 +154,81 @@ class OrderProcessFlowDatabaseTest extends TestCase
         self::assertSame($this->guestOrderId, $data['guestOrder']);
         self::assertSame((string)$FirstOrder->getCustomer()->getUUID(), (string)$data['customerId']);
         self::assertSame((string)$data['customerId'], (string)$data['c_user']);
+    }
+
+    public function testLoginTransfersCurrentGuestDraftAndPreservesItsData(): void
+    {
+        $Order = EventHandler::onOrderProcessGetOrder($this->createMock(OrderProcess::class));
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $hash = $Order->getUUID();
+        $this->loginOrderHashes[] = $hash;
+        $Order->setData('login-transfer-marker', 'preserved');
+        $Order->save(QUI::getUsers()->getSystemUser());
+        $User = $this->createLoginCustomer();
+
+        QUI::getUsers()->withSessionUser($User, static function () use ($User, $hash): void {
+            EventHandler::onUserLogin($User);
+            $Transferred = Handler::getInstance()->getOrderInProcessByHash($hash);
+
+            self::assertSame($User->getUUID(), $Transferred->getCustomer()->getUUID());
+            self::assertSame($User->getUUID(), $Transferred->getCreateUser()->getUUID());
+            self::assertSame('preserved', $Transferred->getDataEntry('login-transfer-marker'));
+            $Transferred->save($User);
+
+            // A second login callback must leave the adopted order intact.
+            EventHandler::onUserLogin($User);
+            self::assertSame($hash, $Transferred->getUUID());
+        });
+
+        self::assertEmpty(QUI::getSession()->get(GuestOrder::FLAG));
+    }
+
+    public function testLoginDoesNotTransferDraftsFromAnotherGuestSession(): void
+    {
+        $Order = EventHandler::onOrderProcessGetOrder($this->createMock(OrderProcess::class));
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $hash = $Order->getUUID();
+        $this->loginOrderHashes[] = $hash;
+        $guestUuid = $Order->getCustomer()->getUUID();
+        QUI::getSession()->set('guest-order-id', 'another-guest-session');
+        $User = $this->createLoginCustomer();
+
+        QUI::getUsers()->withSessionUser($User, static function () use ($User): void {
+            EventHandler::onUserLogin($User);
+        });
+
+        $Unchanged = Handler::getInstance()->getOrderInProcessByHash($hash);
+        self::assertSame($guestUuid, $Unchanged->getCustomer()->getUUID());
+    }
+
+    public function testLoginDoesNotTransferDraftsAlreadySubmittedForPayment(): void
+    {
+        $Order = EventHandler::onOrderProcessGetOrder($this->createMock(OrderProcess::class));
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+        $hash = $Order->getUUID();
+        $this->loginOrderHashes[] = $hash;
+        $guestUuid = $Order->getCustomer()->getUUID();
+        $Order->setData('orderedWithCosts', true);
+        $Order->save(QUI::getUsers()->getSystemUser());
+        $User = $this->createLoginCustomer();
+
+        QUI::getUsers()->withSessionUser($User, static function () use ($User): void {
+            EventHandler::onUserLogin($User);
+        });
+
+        $Unchanged = Handler::getInstance()->getOrderInProcessByHash($hash);
+        self::assertSame($guestUuid, $Unchanged->getCustomer()->getUUID());
+    }
+
+    private function createLoginCustomer(): QUI\Users\User
+    {
+        $SystemUser = QUI::getUsers()->getSystemUser();
+        $User = QUI::getUsers()->createChild($this->email, $SystemUser);
+        $User->setAttribute('email', $this->email);
+        $User->save($SystemUser);
+        $this->createdUserUuid = $User->getUUID();
+
+        return $User;
     }
 
     public function testAnonymousOrderStatusIsSavedAndLaterChangesArePreserved(): void

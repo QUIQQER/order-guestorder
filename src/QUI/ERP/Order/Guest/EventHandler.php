@@ -2,6 +2,7 @@
 
 namespace QUI\ERP\Order\Guest;
 
+use Doctrine\DBAL\Connection;
 use QUI;
 use QUI\ERP\Order\AbstractOrder;
 use QUI\ERP\Order\Guest\Controls\GuestOrderButton;
@@ -26,6 +27,81 @@ use function method_exists;
 
 class EventHandler
 {
+    /**
+     * Keep unfinished orders from this guest session accessible after login.
+     */
+    public static function onUserLogin(QUI\Interfaces\Users\User $User): void
+    {
+        $Session = self::getSessionInstance();
+        $wasGuest = (bool)$Session?->get(GuestOrder::FLAG);
+        GuestOrder::removeGuestOrderFlag();
+
+        if (
+            !$wasGuest
+            || !QUI::isFrontend()
+            || $User instanceof QUI\Users\Nobody
+        ) {
+            return;
+        }
+
+        $guestId = $Session->get('guest-order-id');
+        $guestUuid = $Session->get(GuestOrder::CUSTOMER_UUID);
+
+        if (
+            !is_string($guestId)
+            || $guestId === ''
+            || !is_string($guestUuid)
+            || $guestUuid === ''
+        ) {
+            return;
+        }
+
+        $Handler = QUI\ERP\Order\Handler::getInstance();
+        $table = Doctrine::quoteIdentifier($Handler->tableOrderProcess());
+
+        QUI::getDataBaseConnection()->transactional(
+            static function (Connection $Connection) use ($User, $Handler, $table, $guestId, $guestUuid): void {
+                $orderIds = $Connection->createQueryBuilder()
+                    ->select(Doctrine::quoteIdentifier('id'))
+                    ->from($table)
+                    ->where(Doctrine::quoteIdentifier('guestOrder') . ' = :guestOrder')
+                    ->andWhere(Doctrine::quoteIdentifier('customerId') . ' = :guestUuid')
+                    ->andWhere(Doctrine::quoteIdentifier('c_user') . ' = :guestUuid')
+                    ->andWhere(Doctrine::quoteIdentifier('successful') . ' = :successful')
+                    ->setParameter('guestOrder', $guestId)
+                    ->setParameter('guestUuid', $guestUuid)
+                    ->setParameter('successful', 0)
+                    ->executeQuery()
+                    ->fetchFirstColumn();
+
+                foreach ($orderIds as $orderId) {
+                    $Order = $Handler->getOrderInProcess($orderId);
+
+                    if ($Order->getOrderId() || $Order->getDataEntry('orderedWithCosts')) {
+                        continue;
+                    }
+
+                    $Order->setCustomer($User);
+                    $Order->setData('sc_needs_recalc', 1);
+                    $Order->save(QUI::getUsers()->getSystemUser());
+
+                    $Connection->update(
+                        $table,
+                        [
+                            Doctrine::quoteIdentifier('c_user') => $User->getUUID(),
+                            Doctrine::quoteIdentifier('guestOrder') => null
+                        ],
+                        [
+                            Doctrine::quoteIdentifier('id') => $orderId,
+                            Doctrine::quoteIdentifier('guestOrder') => $guestId,
+                            Doctrine::quoteIdentifier('c_user') => $guestUuid
+                        ]
+                    );
+                }
+            }
+        );
+    }
+
     /**
      * Create the initial guest order status once and preserve administrator selections.
      */
