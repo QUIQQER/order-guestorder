@@ -2,6 +2,7 @@
 
 namespace QUITests\Order\Guest;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use QUI;
 use QUI\ERP\Order\Guest\EventHandler;
@@ -264,6 +265,66 @@ class OrderProcessFlowDatabaseTest extends TestCase
 
         $ReloadedOrder = new OrderInProcess($Order->getId());
         self::assertSame($originalStatus->getId(), $ReloadedOrder->getProcessingStatus()?->getId());
+    }
+
+    #[DataProvider('guestOrderCommentStates')]
+    public function testGuestOrderCommentIsAddedOnlyOnceAcrossReloadedCheckoutEvents(
+        bool $existingComment,
+        bool $alreadyMarked
+    ): void {
+        $Config = QUI::getPackage('quiqqer/order-guestorder')->getConfig();
+        self::assertNotNull($Config);
+        $Config->setValue('guestorder', 'type', 'anonymous');
+        $Config->save();
+
+        $OrderProcess = $this->createMock(OrderProcess::class);
+        $OrderProcess->method('getAttribute')->willReturn(null);
+        $Order = EventHandler::onOrderProcessGetOrder($OrderProcess);
+        self::assertInstanceOf(OrderInProcess::class, $Order);
+
+        $message = QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.order.type');
+        $Order->addComment('Please leave the parcel at the door.');
+
+        if ($existingComment) {
+            $Order->addComment($message);
+        }
+
+        if ($alreadyMarked) {
+            $Order->setData('guest-order-comment-added', true);
+        }
+
+        $Order->save(QUI::getUsers()->getSystemUser());
+        $OrderProcess->method('getOrder')->willReturnCallback(static function () use (&$Order): OrderInProcess {
+            return $Order;
+        });
+
+        EventHandler::onQuiqqerOrderProcessSendCreateOrder($OrderProcess);
+
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $Order = new OrderInProcess($Order->getId());
+            EventHandler::onQuiqqerOrderProcessSend($OrderProcess);
+        }
+
+        $ReloadedOrder = new OrderInProcess($Order->getId());
+        $messages = array_column($ReloadedOrder->getComments()->toArray(), 'message');
+        $expected = ['Please leave the parcel at the door.'];
+
+        if (!$alreadyMarked || $existingComment) {
+            $expected[] = $message;
+        }
+
+        self::assertSame($expected, $messages);
+        self::assertTrue($ReloadedOrder->getDataEntry('guest-order-comment-added'));
+    }
+
+    public static function guestOrderCommentStates(): array
+    {
+        return [
+            'new guest order' => [false, false],
+            'existing unmarked guest comment' => [true, false],
+            'existing marked guest comment' => [true, true],
+            'intentionally removed guest comment' => [false, true]
+        ];
     }
 
     public function testGuestCustomerReceivesConfiguredOrderStatus(): void
