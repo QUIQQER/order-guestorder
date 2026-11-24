@@ -17,10 +17,12 @@ use QUI\Utils\Doctrine;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+use function array_column;
 use function class_exists;
 use function count;
 use function date;
 use function floatval;
+use function in_array;
 use function is_string;
 use function json_decode;
 use function method_exists;
@@ -516,9 +518,16 @@ class EventHandler
             $Articles = $Order->getArticles();
             $oldPriceFactors = $Articles->getPriceFactors()->toArray();
 
-            $Order->addComment(
-                QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.order.type')
-            );
+            if (!$Order->getDataEntry('guest-order-comment-added')) {
+                $message = QUI::getLocale()->get('quiqqer/order-guestorder', 'message.guest.order.type');
+                $messages = array_column($Order->getComments()->toArray(), 'message');
+
+                if (!in_array($message, $messages, true)) {
+                    $Order->addComment($message);
+                }
+
+                $Order->setData('guest-order-comment-added', true);
+            }
 
             if (empty($_REQUEST['guest-order-create-account'])) {
                 // create normal account
